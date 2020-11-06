@@ -1753,7 +1753,7 @@ function GUI2:CreateWidgetWindow(category, name, parent)
 		Window.RightWidgetsBG[Name] = Function
 	end
 	
-	if parent then
+	--[[if parent then
 		for i = 1, #category.Children do
 			if (category.Children[i].Name == name) then
 				category.Children[i].Window = Window
@@ -1761,7 +1761,15 @@ function GUI2:CreateWidgetWindow(category, name, parent)
 		end
 	else
 		category.Window = Window
+	end]]
+	print(#self.OnLoadCalls[category][name].Calls)
+	for i = 1, #self.OnLoadCalls[category][name].Calls do
+		self.OnLoadCalls[category][name].Calls[1](Window.LeftWidgetsBG, Window.RightWidgetsBG)
+		
+		tremove(self.OnLoadCalls[category][name].Calls, 1)
 	end
+	
+	return Window
 end
 
 function GUI2:LoadWindow(category, name, parent)
@@ -1774,6 +1782,27 @@ function GUI2:ShowWindow(category, name, parent) -- this needs writing to consid
 	-- hide all windows
 	-- show the right one
 	-- add hooks here?
+	
+	if parent then
+		
+	else
+		for i = 1, #self.Categories do
+			for j = 1, #self.Categories[i].Buttons do
+				if (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == name) then
+					if (not self.Categories[i].Buttons[j].Window) then
+						self.Categories[i].Buttons[j].Window = self:CreateWidgetWindow(category, name, parent)
+					end
+					--print("show", category, name)
+					self.Categories[i].Buttons[j].Window:Show()
+				else
+				--	if self.Categories[i].Buttons[j].Window then
+				--		self.Categories[i].Buttons[j].Window:Hide()
+				--	end
+				--print("hide", self.Categories[i].Name, self.Categories[i].Buttons[j].Name)
+				end
+			end
+		end
+	end
 	
 	if 1 == 1 then return end
 	
@@ -1920,6 +1949,60 @@ end
 local WindowButtonOnMouseUp = function(self)
 	self.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
 	
+	--[[if (not self.Window) then
+		-- Window
+		local Window = CreateFrame("Frame", nil, GUI2, "BackdropTemplate")
+		Window:SetWidth(PARENT_WIDTH)
+		Window:SetPoint("BOTTOMRIGHT", GUI2, -SPACING, SPACING)
+		Window:SetPoint("TOPRIGHT", GUI2.CloseButton, "BOTTOMRIGHT", 0, -2)
+		Window:SetBackdropBorderColor(0, 0, 0)
+		Window:Hide()
+		
+		Window.LeftWidgetsBG = CreateFrame("Frame", nil, Window)
+		Window.LeftWidgetsBG:SetWidth(GROUP_WIDTH + (SPACING * 2))
+		Window.LeftWidgetsBG:SetPoint("TOPLEFT", Window, 16, 0)
+		Window.LeftWidgetsBG:SetPoint("BOTTOMLEFT", Window, 16, 0)
+		
+		Window.LeftWidgetsBG.Backdrop = CreateFrame("Frame", nil, Window, "BackdropTemplate")
+		Window.LeftWidgetsBG.Backdrop:SetWidth(GROUP_WIDTH + (SPACING * 2))
+		Window.LeftWidgetsBG.Backdrop:SetPoint("TOPLEFT", Window.LeftWidgetsBG, 0, 0)
+		Window.LeftWidgetsBG.Backdrop:SetPoint("BOTTOMLEFT", Window.LeftWidgetsBG, 0, 0)
+		Window.LeftWidgetsBG.Backdrop:SetBackdrop(vUI.BackdropAndBorder)
+		Window.LeftWidgetsBG.Backdrop:SetBackdropColor(vUI:HexToRGB(Settings["ui-window-main-color"]))
+		Window.LeftWidgetsBG.Backdrop:SetBackdropBorderColor(0, 0, 0)
+		
+		Window.RightWidgetsBG = CreateFrame("Frame", nil, Window)
+		Window.RightWidgetsBG:SetWidth(GROUP_WIDTH + (SPACING * 2))
+		Window.RightWidgetsBG:SetPoint("TOPLEFT", Window.LeftWidgetsBG, "TOPRIGHT", 2, 0)
+		Window.RightWidgetsBG:SetPoint("BOTTOMLEFT", Window.LeftWidgetsBG, "BOTTOMRIGHT", 2, 0)
+		
+		Window.RightWidgetsBG.Backdrop = CreateFrame("Frame", nil, Window, "BackdropTemplate")
+		Window.RightWidgetsBG.Backdrop:SetWidth(GROUP_WIDTH + (SPACING * 2))
+		Window.RightWidgetsBG.Backdrop:SetPoint("TOPLEFT", Window.RightWidgetsBG, 0, 0)
+		Window.RightWidgetsBG.Backdrop:SetPoint("BOTTOMLEFT", Window.RightWidgetsBG, 0, 0)
+		Window.RightWidgetsBG.Backdrop:SetBackdrop(vUI.BackdropAndBorder)
+		Window.RightWidgetsBG.Backdrop:SetBackdropColor(vUI:HexToRGB(Settings["ui-window-main-color"]))
+		Window.RightWidgetsBG.Backdrop:SetBackdropBorderColor(0, 0, 0)
+		
+		Window.Parent = GUI2
+		Window.Button = self
+		Window.SortWindow = SortWindow
+		Window.LeftWidgets = {}
+		Window.RightWidgets = {}
+		
+		Window.LeftWidgetsBG.Widgets = Window.LeftWidgets
+		Window.LeftWidgetsBG.DisableScrolling = DisableScrolling
+		Window.RightWidgetsBG.Widgets = Window.RightWidgets
+		Window.RightWidgetsBG.DisableScrolling = DisableScrolling
+		
+		for Name, Function in pairs(GUI2.Widgets) do
+			Window.LeftWidgetsBG[Name] = Function
+			Window.RightWidgetsBG[Name] = Function
+		end
+		
+		self.Window = Window
+	end]]
+	
 	GUI2:ShowWindow(self.Category, self.Name, self.Parent)
 end
 
@@ -1933,6 +2016,8 @@ function GUI2:CreateWindow(category, name, parent)
 	if (not self.CategoryNames[category]) then
 		self:CreateCategory(category)
 	end
+	
+	local Category = self.CategoryNames[category]
 	
 	local Button = CreateFrame("Frame", nil, self, "BackdropTemplate")
 	Button:SetSize(MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT, "BackdropTemplate")
@@ -1985,152 +2070,27 @@ function GUI2:CreateWindow(category, name, parent)
 	
 	if parent then
 		Button.Parent = parent
-	else
-		Button:SetBackdrop(vUI.BackdropAndBorder)
-		Button:SetBackdropColor(0, 0, 0)
-		Button:SetBackdropBorderColor(0, 0, 0)
 		
-		for i = 1, #self.Categories do
-			if (self.Categories[i].Name == category) then
-				tinsert(self.Categories[i].Buttons, Button)
-				
-				break
-			end
-		end
-		
-		self.TotalSelections = (self.TotalSelections or 0) + 1
-	end
-	
-	if parent then
-		local ParentButton
-		
-		for i = 1, #self.Categories do
-			if (self.Categories[i].Name == category) then
-				for j = 1, #self.Categories[i].Buttons do
-					if (self.Categories[i].Buttons[j].Name == parent) then
-						ParentButton = self.Categories[i].Buttons[j]
-						
-						break
-					end
+		for j = 1, #Category.Buttons do
+			if (Category.Buttons[j].Name == parent) then
+				if (not Category.Buttons[j].Children) then
+					Category.Buttons[j].Children = {}
 				end
-			end
-		end
-		
-		-- Button
-		local Button = CreateFrame("Frame", nil, self, "BackdropTemplate")
-		Button:SetSize(MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT, "BackdropTemplate")
-		Button:SetBackdrop(vUI.BackdropAndBorder)
-		Button:SetBackdropColor(0, 0, 0, 0)
-		Button:SetBackdropBorderColor(0, 0, 0, 0)
-		Button:SetFrameLevel(self:GetFrameLevel() + 2)
-		Button.Name = name
-		Button.Category = category
-		Button.Parent = parent
-		Button:SetScript("OnEnter", WindowButtonOnEnter)
-		Button:SetScript("OnLeave", WindowButtonOnLeave)
-		Button:SetScript("OnMouseUp", WindowButtonOnMouseUp)
-		Button:SetScript("OnMouseDown", WindowButtonOnMouseDown)
-		
-		Button.Selected = Button:CreateTexture(nil, "OVERLAY")
-		Button.Selected:SetPoint("TOPLEFT", Button, 1, -1)
-		Button.Selected:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-		Button.Selected:SetTexture(Assets:GetTexture("RenHorizonUp"))
-		Button.Selected:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-color"]))
-		Button.Selected:SetAlpha(0)
-		
-		Button.Highlight = Button:CreateTexture(nil, "OVERLAY")
-		Button.Highlight:SetPoint("TOPLEFT", Button, 1, -1)
-		Button.Highlight:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-		Button.Highlight:SetTexture(Assets:GetTexture("Blank"))
-		Button.Highlight:SetVertexColor(1, 1, 1, 0.4)
-		Button.Highlight:SetAlpha(0)
-		
-		Button.Texture = Button:CreateTexture(nil, "ARTWORK")
-		Button.Texture:SetPoint("TOPLEFT", Button, 1, -1)
-		Button.Texture:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-		Button.Texture:SetTexture(Assets:GetTexture(Settings["ui-button-texture"]))
-		Button.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
-		Button.Texture:SetAlpha(0)
-		
-		Button.Text = Button:CreateFontString(nil, "OVERLAY")
-		--Button.Text:SetPoint("CENTER", Button, 0, -1)
-		Button.Text:SetPoint("LEFT", Button, 5, -1)
-		Button.Text:SetSize(MENU_BUTTON_WIDTH - 6, MENU_BUTTON_HEIGHT)
-		vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], 12)
-		Button.Text:SetJustifyH("LEFT")
-		Button.Text:SetText("|cFF" .. Settings["ui-button-font-color"] .. name .. "|r")
-		
-		if (not ParentButton.Children) then
-			ParentButton.Children = {}
-		end
-		
-		tinsert(ParentButton.Children, Button)
-	else
-		-- Button
-		local Button = CreateFrame("Frame", nil, self, "BackdropTemplate")
-		Button:SetSize(MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT, "BackdropTemplate")
-		Button:SetBackdrop(vUI.BackdropAndBorder)
-		Button:SetBackdropColor(0, 0, 0)
-		Button:SetBackdropBorderColor(0, 0, 0)
-		Button:SetFrameLevel(self:GetFrameLevel() + 2)
-		Button.Name = name
-		Button.Category = category
-		Button:SetScript("OnEnter", WindowButtonOnEnter)
-		Button:SetScript("OnLeave", WindowButtonOnLeave)
-		Button:SetScript("OnMouseUp", WindowButtonOnMouseUp)
-		Button:SetScript("OnMouseDown", WindowButtonOnMouseDown)
-		
-		Button.Selected = Button:CreateTexture(nil, "OVERLAY")
-		Button.Selected:SetPoint("TOPLEFT", Button, 1, -1)
-		Button.Selected:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-		Button.Selected:SetTexture(Assets:GetTexture("RenHorizonUp"))
-		Button.Selected:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-color"]))
-		Button.Selected:SetAlpha(0)
-		
-		Button.Highlight = Button:CreateTexture(nil, "OVERLAY")
-		Button.Highlight:SetPoint("TOPLEFT", Button, 1, -1)
-		Button.Highlight:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-		Button.Highlight:SetTexture(Assets:GetTexture("Blank"))
-		Button.Highlight:SetVertexColor(1, 1, 1, 0.4)
-		Button.Highlight:SetAlpha(0)
-		
-		Button.Texture = Button:CreateTexture(nil, "ARTWORK")
-		Button.Texture:SetPoint("TOPLEFT", Button, 1, -1)
-		Button.Texture:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-		Button.Texture:SetTexture(Assets:GetTexture(Settings["ui-button-texture"]))
-		Button.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
-		
-		Button.Text = Button:CreateFontString(nil, "OVERLAY")
-		Button.Text:SetPoint("CENTER", Button, 0, -1)
-		Button.Text:SetSize(MENU_BUTTON_WIDTH - 6, MENU_BUTTON_HEIGHT)
-		vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], Settings["ui-header-font-size"])
-		Button.Text:SetJustifyH("CENTER")
-		Button.Text:SetText("|cFF" .. Settings["ui-button-font-color"] .. name .. "|r")
-		
-		Button.Fade = CreateAnimationGroup(Button.Selected)
-		
-		Button.FadeIn = Button.Fade:CreateAnimation("Fade")
-		Button.FadeIn:SetEasing("in")
-		Button.FadeIn:SetDuration(0.15)
-		Button.FadeIn:SetChange(SELECTED_HIGHLIGHT_ALPHA)
-		
-		Button.FadeOut = Button.Fade:CreateAnimation("Fade")
-		Button.FadeOut:SetEasing("out")
-		Button.FadeOut:SetDuration(0.15)
-		Button.FadeOut:SetChange(0)
-		
-		for i = 1, #self.Categories do
-			if (self.Categories[i].Name == category) then
-				tinsert(self.Categories[i].Buttons, Button)
+				
+				tinsert(Category.Buttons[j].Children, Button)
 				
 				break
 			end
 		end
+	else
+		Button:SetBackdrop(vUI.BackdropAndBorder)
+		Button:SetBackdropColor(0, 0, 0)
+		Button:SetBackdropBorderColor(0, 0, 0)
+		
+		tinsert(Category.Buttons, Button)
 		
 		self.TotalSelections = (self.TotalSelections or 0) + 1
 	end
-	
-	--self:CreateWidgetWindow(category, name, parent)
 end
 
 GUI2.OnLoadCalls = {}
