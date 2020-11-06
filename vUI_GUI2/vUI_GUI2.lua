@@ -1790,14 +1790,18 @@ function GUI2:ShowWindow(category, name, parent) -- this needs writing to consid
 			for j = 1, #self.Categories[i].Buttons do
 				if (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == name) then
 					if (not self.Categories[i].Buttons[j].Window) then
-						self.Categories[i].Buttons[j].Window = self:CreateWidgetWindow(category, name, parent)
+						local Window = self:CreateWidgetWindow(category, name, parent)
+						
+						Window:SortWindow()
+						
+						self.Categories[i].Buttons[j].Window = Window
 					end
 					--print("show", category, name)
 					self.Categories[i].Buttons[j].Window:Show()
 				else
-				--	if self.Categories[i].Buttons[j].Window then
-				--		self.Categories[i].Buttons[j].Window:Hide()
-				--	end
+					if self.Categories[i].Buttons[j].Window then
+						self.Categories[i].Buttons[j].Window:Hide()
+					end
 				--print("hide", self.Categories[i].Name, self.Categories[i].Buttons[j].Name)
 				end
 			end
@@ -2551,6 +2555,8 @@ GUI2:AddSettings("General", "Player", "Unit Frames", function(left, right)
 end)
 
 GUI2:AddSettings("Info", "Credits", function(left, right)
+	print(left, right)
+
 	left:CreateHeader(Language["Scripting Help & Mentoring"])
 	left:CreateMessage("Tukz, Foof, Eclipse, nightcracker, Elv, Smelly, Azilroka, AlleyKat, Zork, Simpy")
 	
