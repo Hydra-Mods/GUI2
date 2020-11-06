@@ -1,0 +1,7 @@
+## Interface: 90001
+## Author: Hydra
+## Version: 1.00
+## Title: |cFFFFC44DvUI|r GUI2
+## Notes: Just a better GUI
+
+vUI_GUI2.lua
