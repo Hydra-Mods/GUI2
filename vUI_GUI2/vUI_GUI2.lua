@@ -2031,7 +2031,7 @@ function GUI2:CreateWindow(category, name, parent)
 	if parent then
 		Button.Parent = parent
 		
-		Button.Text:SetPoint("LEFT", Button, 0, -1)
+		Button.Text:SetPoint("LEFT", Button, 2, -1)
 		Button.Text:SetJustifyH("LEFT")
 		
 		for j = 1, #Category.Buttons do
