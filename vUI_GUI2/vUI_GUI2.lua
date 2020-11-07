@@ -1796,15 +1796,35 @@ function GUI2:ShowWindow(category, name, parent) -- this needs writing to consid
 						
 						self.Categories[i].Buttons[j].Window = Window
 					end
+					
 					self.Categories[i].Buttons[j].Window:Show()
+					
+					-- children
+					if self.Categories[i].Buttons[j].Children then
+						for o = 1, #self.Categories[i].Buttons[j].Children do
+							if (self.Categories[i].Buttons[j].Children[o].Name == name) then
+								if self.Categories[i].Buttons[j].Children[o].Window then
+									self.Categories[i].Buttons[j].Children[o].Window:Show()
+								end
+							elseif self.Categories[i].Buttons[j].Children[o].Window then
+								self.Categories[i].Buttons[j].Children[o].Window:Hide()
+							end
+						end
+						
+						self.Categories[i].Buttons[j].ChildrenShown = true
+					end
 				else
 					if self.Categories[i].Buttons[j].Window then
 						self.Categories[i].Buttons[j].Window:Hide()
+						
+						-- if children
 					end
 				end
 			end
 		end
 	end
+	
+	self:ScrollSelections()
 	
 	if 1 == 1 then return end
 	
@@ -1951,60 +1971,6 @@ end
 local WindowButtonOnMouseUp = function(self)
 	self.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
 	
-	--[[if (not self.Window) then
-		-- Window
-		local Window = CreateFrame("Frame", nil, GUI2, "BackdropTemplate")
-		Window:SetWidth(PARENT_WIDTH)
-		Window:SetPoint("BOTTOMRIGHT", GUI2, -SPACING, SPACING)
-		Window:SetPoint("TOPRIGHT", GUI2.CloseButton, "BOTTOMRIGHT", 0, -2)
-		Window:SetBackdropBorderColor(0, 0, 0)
-		Window:Hide()
-		
-		Window.LeftWidgetsBG = CreateFrame("Frame", nil, Window)
-		Window.LeftWidgetsBG:SetWidth(GROUP_WIDTH + (SPACING * 2))
-		Window.LeftWidgetsBG:SetPoint("TOPLEFT", Window, 16, 0)
-		Window.LeftWidgetsBG:SetPoint("BOTTOMLEFT", Window, 16, 0)
-		
-		Window.LeftWidgetsBG.Backdrop = CreateFrame("Frame", nil, Window, "BackdropTemplate")
-		Window.LeftWidgetsBG.Backdrop:SetWidth(GROUP_WIDTH + (SPACING * 2))
-		Window.LeftWidgetsBG.Backdrop:SetPoint("TOPLEFT", Window.LeftWidgetsBG, 0, 0)
-		Window.LeftWidgetsBG.Backdrop:SetPoint("BOTTOMLEFT", Window.LeftWidgetsBG, 0, 0)
-		Window.LeftWidgetsBG.Backdrop:SetBackdrop(vUI.BackdropAndBorder)
-		Window.LeftWidgetsBG.Backdrop:SetBackdropColor(vUI:HexToRGB(Settings["ui-window-main-color"]))
-		Window.LeftWidgetsBG.Backdrop:SetBackdropBorderColor(0, 0, 0)
-		
-		Window.RightWidgetsBG = CreateFrame("Frame", nil, Window)
-		Window.RightWidgetsBG:SetWidth(GROUP_WIDTH + (SPACING * 2))
-		Window.RightWidgetsBG:SetPoint("TOPLEFT", Window.LeftWidgetsBG, "TOPRIGHT", 2, 0)
-		Window.RightWidgetsBG:SetPoint("BOTTOMLEFT", Window.LeftWidgetsBG, "BOTTOMRIGHT", 2, 0)
-		
-		Window.RightWidgetsBG.Backdrop = CreateFrame("Frame", nil, Window, "BackdropTemplate")
-		Window.RightWidgetsBG.Backdrop:SetWidth(GROUP_WIDTH + (SPACING * 2))
-		Window.RightWidgetsBG.Backdrop:SetPoint("TOPLEFT", Window.RightWidgetsBG, 0, 0)
-		Window.RightWidgetsBG.Backdrop:SetPoint("BOTTOMLEFT", Window.RightWidgetsBG, 0, 0)
-		Window.RightWidgetsBG.Backdrop:SetBackdrop(vUI.BackdropAndBorder)
-		Window.RightWidgetsBG.Backdrop:SetBackdropColor(vUI:HexToRGB(Settings["ui-window-main-color"]))
-		Window.RightWidgetsBG.Backdrop:SetBackdropBorderColor(0, 0, 0)
-		
-		Window.Parent = GUI2
-		Window.Button = self
-		Window.SortWindow = SortWindow
-		Window.LeftWidgets = {}
-		Window.RightWidgets = {}
-		
-		Window.LeftWidgetsBG.Widgets = Window.LeftWidgets
-		Window.LeftWidgetsBG.DisableScrolling = DisableScrolling
-		Window.RightWidgetsBG.Widgets = Window.RightWidgets
-		Window.RightWidgetsBG.DisableScrolling = DisableScrolling
-		
-		for Name, Function in pairs(GUI2.Widgets) do
-			Window.LeftWidgetsBG[Name] = Function
-			Window.RightWidgetsBG[Name] = Function
-		end
-		
-		self.Window = Window
-	end]]
-	
 	GUI2:ShowWindow(self.Category, self.Name, self.Parent)
 end
 
@@ -2045,17 +2011,9 @@ function GUI2:CreateWindow(category, name, parent)
 	Button.Highlight:SetVertexColor(1, 1, 1, 0.4)
 	Button.Highlight:SetAlpha(0)
 	
-	Button.Texture = Button:CreateTexture(nil, "ARTWORK")
-	Button.Texture:SetPoint("TOPLEFT", Button, 1, -1)
-	Button.Texture:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-	Button.Texture:SetTexture(Assets:GetTexture(Settings["ui-button-texture"]))
-	Button.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
-	
 	Button.Text = Button:CreateFontString(nil, "OVERLAY")
-	Button.Text:SetPoint("CENTER", Button, 0, -1)
 	Button.Text:SetSize(MENU_BUTTON_WIDTH - 6, MENU_BUTTON_HEIGHT)
 	vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], Settings["ui-header-font-size"])
-	Button.Text:SetJustifyH("CENTER")
 	Button.Text:SetText("|cFF" .. Settings["ui-button-font-color"] .. name .. "|r")
 	
 	Button.Fade = CreateAnimationGroup(Button.Selected)
@@ -2073,6 +2031,9 @@ function GUI2:CreateWindow(category, name, parent)
 	if parent then
 		Button.Parent = parent
 		
+		Button.Text:SetPoint("LEFT", Button, 0, -1)
+		Button.Text:SetJustifyH("LEFT")
+		
 		for j = 1, #Category.Buttons do
 			if (Category.Buttons[j].Name == parent) then
 				if (not Category.Buttons[j].Children) then
@@ -2088,6 +2049,15 @@ function GUI2:CreateWindow(category, name, parent)
 		Button:SetBackdrop(vUI.BackdropAndBorder)
 		Button:SetBackdropColor(0, 0, 0)
 		Button:SetBackdropBorderColor(0, 0, 0)
+		
+		Button.Texture = Button:CreateTexture(nil, "ARTWORK")
+		Button.Texture:SetPoint("TOPLEFT", Button, 1, -1)
+		Button.Texture:SetPoint("BOTTOMRIGHT", Button, -1, 1)
+		Button.Texture:SetTexture(Assets:GetTexture(Settings["ui-button-texture"]))
+		Button.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
+		
+		Button.Text:SetPoint("CENTER", Button, 0, -1)
+		Button.Text:SetJustifyH("CENTER")
 		
 		tinsert(Category.Buttons, Button)
 		
@@ -2544,6 +2514,18 @@ GUI2:AddSettings("General", "Action Bars", function(left, right)
 	left:CreateLine("Action Bars")
 end)
 
+GUI2:AddSettings("General", "Bar 1", "Action Bars", function(left, right)
+	left:CreateLine("Action Bars - Bar 1")
+end)
+
+GUI2:AddSettings("General", "Bar 2", "Action Bars", function(left, right)
+	left:CreateLine("Action Bars - Bar 2")
+end)
+
+GUI2:AddSettings("General", "Bar 3", "Action Bars", function(left, right)
+	left:CreateLine("Action Bars - Bar 3")
+end)
+
 GUI2:AddSettings("General", "Unit Frames", function(left, right)
 	left:CreateLine("Unit Frames")
 end)
@@ -2553,8 +2535,6 @@ GUI2:AddSettings("General", "Player", "Unit Frames", function(left, right)
 end)
 
 GUI2:AddSettings("Info", "Credits", function(left, right)
-	print(left, right)
-
 	left:CreateHeader(Language["Scripting Help & Mentoring"])
 	left:CreateMessage("Tukz, Foof, Eclipse, nightcracker, Elv, Smelly, Azilroka, AlleyKat, Zork, Simpy")
 	
