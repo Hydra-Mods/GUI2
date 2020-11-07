@@ -1776,7 +1776,7 @@ function GUI2:LoadWindow(category, name, parent)
 	
 end
 
-function GUI2:ShowWindow(category, name, parent) -- this needs writing to consider parent
+function GUI2:ShowWindow(category, name, parent)
 	--load and initialize the window if needed
 	
 	-- hide all windows
@@ -1790,27 +1790,119 @@ function GUI2:ShowWindow(category, name, parent) -- this needs writing to consid
 			for j = 1, #self.Categories[i].Buttons do
 			
 				if parent then
-					for o = 1, #self.Categories[i].Buttons[j].Children do
-						if (self.Categories[i].Buttons[j].Children[o].Name == name) then
-							if (not self.Categories[i].Buttons[j].Children[o].Window) then
-								local Window = self:CreateWidgetWindow(category, name, parent)
+					--[[if (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == parent) then
+						print('yaaas')
+					else
+						print('no')
+					end]]
+					
+					if self.Categories[i].Buttons[j].Children then
+						for o = 1, #self.Categories[i].Buttons[j].Children do
+							if (self.Categories[i].Buttons[j].Children[o].Name == name) then
+								if (not self.Categories[i].Buttons[j].Children[o].Window) then
+									local Window = self:CreateWidgetWindow(category, name, parent)
+									
+									Window:SortWindow()
+									
+									self.Categories[i].Buttons[j].Children[o].Window = Window
+								end
+								print('?')
+								self.Categories[i].Buttons[j].Children[o].Window:Show()
 								
-								Window:SortWindow()
+								--[[ children
+								if self.Categories[i].Buttons[j].Children then
+									for o = 1, #self.Categories[i].Buttons[j].Children do
+										if (self.Categories[i].Buttons[j].Children[o].Name == name) then
+											if self.Categories[i].Buttons[j].Children[o].Window then
+												self.Categories[i].Buttons[j].Children[o].Window:Show()
+											end
+										elseif self.Categories[i].Buttons[j].Children[o].Window then
+											self.Categories[i].Buttons[j].Children[o].Window:Hide()
+										end
+									end
+									
+									self.Categories[i].Buttons[j].ChildrenShown = true
+								end]]
 								
-								self.Categories[i].Buttons[j].Children[o].Window = Window
+							elseif self.Categories[i].Buttons[j].Children[o].Window then
+								self.Categories[i].Buttons[j].Children[o].Window:Hide()
+								
+								--[[if self.Categories[i].Buttons[j].Children then
+									for o = 1, #self.Categories[i].Buttons[j].Children do
+										if self.Categories[i].Buttons[j].Children[o].Window then
+											self.Categories[i].Buttons[j].Children[o].Window:Hide()
+										end
+										
+										self.Categories[i].Buttons[j].Children[o]:Hide()
+									end
+									
+									self.Categories[i].Buttons[j].ChildrenShown = false
+								end]]
 							end
-							
-							self.Categories[i].Buttons[j].Children[o].Window:Show()
-						elseif self.Categories[i].Buttons[j].Children[o].Window then
-							self.Categories[i].Buttons[j].Children[o].Window:Hide()
 						end
 					end
-				else
-					
-				end
+				elseif (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == name) then
 				
-				if (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == name) then
-					if (not self.Categories[i].Buttons[j].Window) then
+				
+				--[[ concept piece
+					if parent then
+						if self.Categories[i].Buttons[j].Children then
+							for o = 1, #self.Categories[i].Buttons[j].Children do
+								if (self.Categories[i].Buttons[j].Children[o].Name == name) then
+									if (not self.Categories[i].Buttons[j].Children[o].Window) then
+										local Window = self:CreateWidgetWindow(category, name, parent)
+										
+										Window:SortWindow()
+										
+										self.Categories[i].Buttons[j].Children[o].Window = Window
+									end
+									
+									self.Categories[i].Buttons[j].Children[o].Window:Show()
+								end
+							end
+						end
+					else
+						if (not self.Categories[i].Buttons[j].Window) then
+							local Window = self:CreateWidgetWindow(category, name, parent)
+							
+							Window:SortWindow()
+							
+							self.Categories[i].Buttons[j].Window = Window
+						end
+						
+						self.Categories[i].Buttons[j].Window:Show()
+					end
+				--]]
+				
+					if parent then
+						if self.Categories[i].Buttons[j].Children then
+							for o = 1, #self.Categories[i].Buttons[j].Children do
+								if (self.Categories[i].Buttons[j].Children[o].Name == name) then
+									if (not self.Categories[i].Buttons[j].Children[o].Window) then
+										local Window = self:CreateWidgetWindow(category, name, parent)
+										
+										Window:SortWindow()
+										
+										self.Categories[i].Buttons[j].Children[o].Window = Window
+									end
+									
+									self.Categories[i].Buttons[j].Children[o].Window:Show()
+								end
+							end
+						end
+					else
+						if (not self.Categories[i].Buttons[j].Window) then
+							local Window = self:CreateWidgetWindow(category, name, parent)
+							
+							Window:SortWindow()
+							
+							self.Categories[i].Buttons[j].Window = Window
+						end
+						
+						self.Categories[i].Buttons[j].Window:Show()
+					end
+				
+				--[[	if (not self.Categories[i].Buttons[j].Window) then
 						local Window = self:CreateWidgetWindow(category, name, parent)
 						
 						Window:SortWindow()
@@ -1818,7 +1910,7 @@ function GUI2:ShowWindow(category, name, parent) -- this needs writing to consid
 						self.Categories[i].Buttons[j].Window = Window
 					end
 					
-					self.Categories[i].Buttons[j].Window:Show()
+					self.Categories[i].Buttons[j].Window:Show()]]
 					
 					-- children
 					if self.Categories[i].Buttons[j].Children then
