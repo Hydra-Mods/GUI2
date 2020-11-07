@@ -1969,12 +1969,18 @@ local WindowButtonOnLeave = function(self)
 end
 
 local WindowButtonOnMouseUp = function(self)
-	self.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
+	if self.Texture then
+		self.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
+	end
 	
 	GUI2:ShowWindow(self.Category, self.Name, self.Parent)
 end
 
 local WindowButtonOnMouseDown = function(self)
+	if (not self.Texture) then
+		return
+	end
+
 	local R, G, B = vUI:HexToRGB(Settings["ui-button-texture-color"])
 	
 	self.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
