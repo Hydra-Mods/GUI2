@@ -1783,11 +1783,32 @@ function GUI2:ShowWindow(category, name, parent) -- this needs writing to consid
 	-- show the right one
 	-- add hooks here?
 	
-	if parent then
+	--if parent then
 		
-	else
+	--else
 		for i = 1, #self.Categories do
 			for j = 1, #self.Categories[i].Buttons do
+			
+				if parent then
+					for o = 1, #self.Categories[i].Buttons[j].Children do
+						if (self.Categories[i].Buttons[j].Children[o].Name == name) then
+							if (not self.Categories[i].Buttons[j].Children[o].Window) then
+								local Window = self:CreateWidgetWindow(category, name, parent)
+								
+								Window:SortWindow()
+								
+								self.Categories[i].Buttons[j].Children[o].Window = Window
+							end
+							
+							self.Categories[i].Buttons[j].Children[o].Window:Show()
+						elseif self.Categories[i].Buttons[j].Children[o].Window then
+							self.Categories[i].Buttons[j].Children[o].Window:Hide()
+						end
+					end
+				else
+					
+				end
+				
 				if (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == name) then
 					if (not self.Categories[i].Buttons[j].Window) then
 						local Window = self:CreateWidgetWindow(category, name, parent)
@@ -1817,12 +1838,22 @@ function GUI2:ShowWindow(category, name, parent) -- this needs writing to consid
 					if self.Categories[i].Buttons[j].Window then
 						self.Categories[i].Buttons[j].Window:Hide()
 						
-						-- if children
+						if self.Categories[i].Buttons[j].Children then
+							for o = 1, #self.Categories[i].Buttons[j].Children do
+								if self.Categories[i].Buttons[j].Children[o].Window then
+									self.Categories[i].Buttons[j].Children[o].Window:Hide()
+								end
+								
+								self.Categories[i].Buttons[j].Children[o]:Hide()
+							end
+							
+							self.Categories[i].Buttons[j].ChildrenShown = false
+						end
 					end
 				end
 			end
 		end
-	end
+	--end
 	
 	self:ScrollSelections()
 	
@@ -2019,8 +2050,6 @@ function GUI2:CreateWindow(category, name, parent)
 	
 	Button.Text = Button:CreateFontString(nil, "OVERLAY")
 	Button.Text:SetSize(MENU_BUTTON_WIDTH - 6, MENU_BUTTON_HEIGHT)
-	vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], Settings["ui-header-font-size"])
-	Button.Text:SetText("|cFF" .. Settings["ui-button-font-color"] .. name .. "|r")
 	
 	Button.Fade = CreateAnimationGroup(Button.Selected)
 	
@@ -2037,8 +2066,10 @@ function GUI2:CreateWindow(category, name, parent)
 	if parent then
 		Button.Parent = parent
 		
-		Button.Text:SetPoint("LEFT", Button, 2, -1)
+		Button.Text:SetPoint("LEFT", Button, LABEL_SPACING*3, -1)
 		Button.Text:SetJustifyH("LEFT")
+		vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], 12)
+		Button.Text:SetText("|cFF" .. Settings["ui-widget-font-color"] .. name .. "|r")
 		
 		for j = 1, #Category.Buttons do
 			if (Category.Buttons[j].Name == parent) then
@@ -2064,6 +2095,8 @@ function GUI2:CreateWindow(category, name, parent)
 		
 		Button.Text:SetPoint("CENTER", Button, 0, -1)
 		Button.Text:SetJustifyH("CENTER")
+		vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], Settings["ui-header-font-size"])
+		Button.Text:SetText("|cFF" .. Settings["ui-button-font-color"] .. name .. "|r")
 		
 		tinsert(Category.Buttons, Button)
 		
