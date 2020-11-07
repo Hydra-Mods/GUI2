@@ -1762,7 +1762,7 @@ function GUI2:CreateWidgetWindow(category, name, parent)
 	else
 		category.Window = Window
 	end]]
-	print(#self.OnLoadCalls[category][name].Calls)
+	
 	for i = 1, #self.OnLoadCalls[category][name].Calls do
 		self.OnLoadCalls[category][name].Calls[1](Window.LeftWidgetsBG, Window.RightWidgetsBG)
 		
@@ -1796,13 +1796,11 @@ function GUI2:ShowWindow(category, name, parent) -- this needs writing to consid
 						
 						self.Categories[i].Buttons[j].Window = Window
 					end
-					--print("show", category, name)
 					self.Categories[i].Buttons[j].Window:Show()
 				else
 					if self.Categories[i].Buttons[j].Window then
 						self.Categories[i].Buttons[j].Window:Hide()
 					end
-				--print("hide", self.Categories[i].Name, self.Categories[i].Buttons[j].Name)
 				end
 			end
 		end
