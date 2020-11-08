@@ -84,6 +84,7 @@ GUI2.WindowHooks = {onshow = {}, onhide = {}}
 GUI2.Categories = {}
 GUI2.CategoryNames = {}
 GUI2.Widgets = {}
+GUI2.OnLoadCalls = {}
 
 local TrimHex = function(s)
 	local Subbed = match(s, "|c%x%x%x%x%x%x%x%x(.-)|r")
@@ -306,6 +307,298 @@ GUI2.Widgets.CreateSupportHeader = function(self, text)
 	tinsert(self.Widgets, Anchor)
 	
 	return Anchor.Text
+end
+
+-- Button
+local BUTTON_WIDTH = 130
+
+local ButtonOnMouseUp = function(self)
+	self.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-bright-color"]))
+	
+	if self.ReloadFlag then
+		vUI:DisplayPopup(Language["Attention"], Language["You have changed a setting that requires a UI reload. Would you like to reload the UI now?"], Language["Accept"], self.Hook, Language["Cancel"])
+	elseif self.Hook then
+		self.Hook()
+	end
+end
+
+local ButtonOnMouseDown = function(self)
+	local R, G, B = HexToRGB(Settings["ui-widget-bright-color"])
+	
+	self.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
+end
+
+local ButtonWidgetOnEnter = function(self)
+	self.Highlight:SetAlpha(MOUSEOVER_HIGHLIGHT_ALPHA)
+end
+
+local ButtonWidgetOnLeave = function(self)
+	self.Highlight:SetAlpha(0)
+end
+
+local ButtonRequiresReload = function(self, flag)
+	self.ReloadFlag = flag
+end
+
+local ButtonEnable = function(self)
+	self.Button:EnableMouse(true)
+	
+	self.Button.MiddleText:SetTextColor(1, 1, 1)
+end
+
+local ButtonDisable = function(self)
+	self.Button:EnableMouse(false)
+	
+	self.Button.MiddleText:SetTextColor(vUI:HexToRGB("A5A5A5"))
+end
+
+GUI2.Widgets.CreateButton = function(self, value, label, tooltip, hook)
+	local Anchor = CreateFrame("Frame", nil, self)
+	Anchor:SetSize(GROUP_WIDTH, WIDGET_HEIGHT)
+	--Anchor.ID = CreateID(value)
+	Anchor.Text = label
+	Anchor.Tooltip = tooltip
+	Anchor.Enable = ButtonEnable
+	Anchor.Disable = ButtonDisable
+	
+	Anchor:SetScript("OnEnter", AnchorOnEnter)
+	Anchor:SetScript("OnLeave", AnchorOnLeave)
+	
+	local Button = CreateFrame("Frame", nil, Anchor, "BackdropTemplate")
+	Button:SetSize(BUTTON_WIDTH, WIDGET_HEIGHT)
+	Button:SetPoint("RIGHT", Anchor, 0, 0)
+	Button:SetBackdrop(vUI.BackdropAndBorder)
+	Button:SetBackdropColor(vUI:HexToRGB(Settings["ui-widget-bright-color"]))
+	Button:SetBackdropBorderColor(0, 0, 0)
+	Button:SetScript("OnMouseUp", ButtonOnMouseUp)
+	Button:SetScript("OnMouseDown", ButtonOnMouseDown)
+	Button:SetScript("OnEnter", ButtonWidgetOnEnter)
+	Button:SetScript("OnLeave", ButtonWidgetOnLeave)
+	Button.Hook = hook
+	Button.RequiresReload = ButtonRequiresReload
+	
+	Button.Texture = Button:CreateTexture(nil, "BORDER")
+	Button.Texture:SetPoint("TOPLEFT", Button, 1, -1)
+	Button.Texture:SetPoint("BOTTOMRIGHT", Button, -1, 1)
+	Button.Texture:SetTexture(Assets:GetTexture(Settings["ui-widget-texture"]))
+	Button.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-bright-color"]))
+	
+	Button.Highlight = Button:CreateTexture(nil, "ARTWORK")
+	Button.Highlight:SetPoint("TOPLEFT", Button, 1, -1)
+	Button.Highlight:SetPoint("BOTTOMRIGHT", Button, -1, 1)
+	Button.Highlight:SetTexture(Assets:GetTexture("Blank"))
+	Button.Highlight:SetVertexColor(1, 1, 1, 0.4)
+	Button.Highlight:SetAlpha(0)
+	
+	Button.MiddleText = Button:CreateFontString(nil, "OVERLAY")
+	Button.MiddleText:SetPoint("CENTER", Button, "CENTER", 0, 0)
+	Button.MiddleText:SetSize(BUTTON_WIDTH - 6, WIDGET_HEIGHT)
+	vUI:SetFontInfo(Button.MiddleText, Settings["ui-widget-font"], Settings["ui-font-size"])
+	Button.MiddleText:SetJustifyH("CENTER")
+	Button.MiddleText:SetText(value)
+	
+	Button.Text = Button:CreateFontString(nil, "OVERLAY")
+	Button.Text:SetPoint("LEFT", Anchor, LABEL_SPACING, 0)
+	Button.Text:SetSize(GROUP_WIDTH - BUTTON_WIDTH - 6, WIDGET_HEIGHT)
+	vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], Settings["ui-font-size"])
+	Button.Text:SetJustifyH("LEFT")
+	Button.Text:SetText("|cFF"..Settings["ui-widget-font-color"]..label.."|r")
+	
+	Anchor.Button = Button
+	
+	tinsert(self.Widgets, Anchor)
+	
+	return Button
+end
+
+-- StatusBar
+local STATUSBAR_WIDTH = 100
+
+GUI2.Widgets.CreateStatusBar = function(self, value, minvalue, maxvalue, label, tooltip, hook)
+	local Anchor = CreateFrame("Frame", nil, self)
+	Anchor:SetSize(GROUP_WIDTH, WIDGET_HEIGHT)
+	Anchor.Text = label
+	Anchor.Tooltip = tooltip
+	
+	Anchor:SetScript("OnEnter", AnchorOnEnter)
+	Anchor:SetScript("OnLeave", AnchorOnLeave)
+	
+	local Backdrop = CreateFrame("Frame", nil, Anchor, "BackdropTemplate")
+	Backdrop:SetSize(STATUSBAR_WIDTH, WIDGET_HEIGHT)
+	Backdrop:SetPoint("RIGHT", Anchor, 0, 0)
+	Backdrop:SetBackdrop(vUI.BackdropAndBorder)
+	Backdrop:SetBackdropColor(vUI:HexToRGB(Settings["ui-window-main-color"]))
+	Backdrop:SetBackdropBorderColor(0, 0, 0)
+	Backdrop.Value = value
+	--Backdrop.Hook = hook
+	
+	Backdrop.BG = Backdrop:CreateTexture(nil, "ARTWORK")
+	Backdrop.BG:SetPoint("TOPLEFT", Backdrop, 1, -1)
+	Backdrop.BG:SetPoint("BOTTOMRIGHT", Backdrop, -1, 1)
+	Backdrop.BG:SetTexture(Assets:GetTexture(Settings["ui-widget-texture"]))
+	Backdrop.BG:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-bg-color"]))
+	
+	local Bar = CreateFrame("StatusBar", nil, Backdrop, "BackdropTemplate")
+	Bar:SetSize(STATUSBAR_WIDTH, WIDGET_HEIGHT)
+	Bar:SetPoint("TOPLEFT", Backdrop, 1, -1)
+	Bar:SetPoint("BOTTOMRIGHT", Backdrop, -1, 1)
+	Bar:SetBackdrop(vUI.BackdropAndBorder)
+	Bar:SetBackdropColor(0, 0, 0, 0)
+	Bar:SetBackdropBorderColor(0, 0, 0, 0)
+	Bar:SetStatusBarTexture(Assets:GetTexture(Settings["ui-widget-texture"]))
+	Bar:SetStatusBarColor(vUI:HexToRGB(Settings["ui-widget-color"]))
+	Bar:SetMinMaxValues(minvalue, maxvalue)
+	Bar:SetValue(value)
+	Bar.Hook = hook
+	Bar.Tooltip = tooltip
+	
+	Bar.Anim = CreateAnimationGroup(Bar):CreateAnimation("progress")
+	Bar.Anim:SetEasing("in")
+	Bar.Anim:SetDuration(0.15)
+	
+	Bar.Spark = Bar:CreateTexture(nil, "ARTWORK")
+	Bar.Spark:SetSize(1, WIDGET_HEIGHT - 2)
+	Bar.Spark:SetPoint("LEFT", Bar:GetStatusBarTexture(), "RIGHT", 0, 0)
+	Bar.Spark:SetTexture(Assets:GetTexture("Blank"))
+	Bar.Spark:SetVertexColor(0, 0, 0)
+	
+	Bar.MiddleText = Bar:CreateFontString(nil, "ARTWORK")
+	Bar.MiddleText:SetPoint("CENTER", Bar, "CENTER", 0, 0)
+	Bar.MiddleText:SetSize(STATUSBAR_WIDTH - 6, WIDGET_HEIGHT)
+	vUI:SetFontInfo(Bar.MiddleText, Settings["ui-widget-font"], Settings["ui-font-size"])
+	Bar.MiddleText:SetJustifyH("CENTER")
+	Bar.MiddleText:SetText(value)
+	
+	Bar.Text = Bar:CreateFontString(nil, "OVERLAY")
+	Bar.Text:SetPoint("LEFT", Anchor, LABEL_SPACING, 0)
+	Bar.Text:SetSize(GROUP_WIDTH - STATUSBAR_WIDTH - 6, WIDGET_HEIGHT)
+	vUI:SetFontInfo(Bar.Text, Settings["ui-widget-font"], Settings["ui-font-size"])
+	Bar.Text:SetJustifyH("LEFT")
+	Bar.Text:SetText("|cFF"..Settings["ui-widget-font-color"]..label.."|r")
+	
+	tinsert(self.Widgets, Anchor)
+	
+	return Bar
+end
+
+-- Checkbox
+local CHECKBOX_WIDTH = 20
+
+local CheckboxOnMouseUp = function(self)
+	if self.Value then
+		self.FadeOut:Play()
+		self.Value = false
+	else
+		self.FadeIn:Play()
+		self.Value = true
+	end
+	
+	SetVariable(self.ID, self.Value)
+	
+	if (self.ReloadFlag) then
+		vUI:DisplayPopup(Language["Attention"], Language["You have changed a setting that requires a UI reload. Would you like to reload the UI now?"], "Accept", self.Hook, "Cancel", nil, self.Value, self.ID)
+	elseif self.Hook then
+		self.Hook(self.Value, self.ID)
+	end
+end
+
+local CheckboxOnEnter = function(self)
+	self.Highlight:SetAlpha(MOUSEOVER_HIGHLIGHT_ALPHA)
+end
+
+local CheckboxOnLeave = function(self)
+	self.Highlight:SetAlpha(0)
+end
+
+local CheckboxRequiresReload = function(self, flag)
+	self.ReloadFlag = flag
+	
+	return self
+end
+
+GUI2.Widgets.CreateCheckbox = function(self, id, value, label, tooltip, hook)
+	if (Settings[id] ~= nil) then
+		value = Settings[id]
+	end
+	
+	local Anchor = CreateFrame("Frame", nil, self)
+	Anchor:SetSize(GROUP_WIDTH, WIDGET_HEIGHT)
+	Anchor.ID = id
+	Anchor.Text = label
+	Anchor.Tooltip = tooltip
+	
+	Anchor:SetScript("OnEnter", AnchorOnEnter)
+	Anchor:SetScript("OnLeave", AnchorOnLeave)
+	
+	local Checkbox = CreateFrame("Frame", nil, Anchor, "BackdropTemplate")
+	Checkbox:SetSize(CHECKBOX_WIDTH, WIDGET_HEIGHT)
+	Checkbox:SetPoint("RIGHT", Anchor, 0, 0)
+	Checkbox:SetBackdrop(vUI.BackdropAndBorder)
+	Checkbox:SetBackdropColor(vUI:HexToRGB(Settings["ui-window-main-color"]))
+	Checkbox:SetBackdropBorderColor(0, 0, 0)
+	Checkbox:SetScript("OnMouseUp", CheckboxOnMouseUp)
+	Checkbox:SetScript("OnEnter", CheckboxOnEnter)
+	Checkbox:SetScript("OnLeave", CheckboxOnLeave)
+	Checkbox.Value = value
+	Checkbox.Hook = hook
+	Checkbox.Tooltip = tooltip
+	Checkbox.ID = id
+	Checkbox.RequiresReload = CheckboxRequiresReload
+	
+	Checkbox.BG = Checkbox:CreateTexture(nil, "ARTWORK")
+	Checkbox.BG:SetPoint("TOPLEFT", Checkbox, 1, -1)
+	Checkbox.BG:SetPoint("BOTTOMRIGHT", Checkbox, -1, 1)
+	Checkbox.BG:SetTexture(Assets:GetTexture(Settings["ui-widget-texture"]))
+	Checkbox.BG:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-bg-color"]))
+	
+	Checkbox.Highlight = Checkbox:CreateTexture(nil, "OVERLAY")
+	Checkbox.Highlight:SetPoint("TOPLEFT", Checkbox, 1, -1)
+	Checkbox.Highlight:SetPoint("BOTTOMRIGHT", Checkbox, -1, 1)
+	Checkbox.Highlight:SetTexture(Assets:GetTexture("Blank"))
+	Checkbox.Highlight:SetVertexColor(1, 1, 1, 0.4)
+	Checkbox.Highlight:SetAlpha(0)
+	
+	Checkbox.Texture = Checkbox:CreateTexture(nil, "ARTWORK")
+	Checkbox.Texture:SetPoint("TOPLEFT", Checkbox, 1, -1)
+	Checkbox.Texture:SetPoint("BOTTOMRIGHT", Checkbox, -1, 1)
+	Checkbox.Texture:SetTexture(Assets:GetTexture(Settings["ui-widget-texture"]))
+	Checkbox.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-color"]))
+	
+	Checkbox.Text = Anchor:CreateFontString(nil, "OVERLAY")
+	Checkbox.Text:SetPoint("LEFT", Anchor, LABEL_SPACING, 0)
+	Checkbox.Text:SetSize(GROUP_WIDTH - CHECKBOX_WIDTH - 6, WIDGET_HEIGHT)
+	vUI:SetFontInfo(Checkbox.Text, Settings["ui-widget-font"], Settings["ui-font-size"])
+	Checkbox.Text:SetJustifyH("LEFT")
+	Checkbox.Text:SetText("|cFF"..Settings["ui-widget-font-color"]..label.."|r")
+	
+	Checkbox.Hover = Checkbox:CreateTexture(nil, "HIGHLIGHT")
+	Checkbox.Hover:SetPoint("TOPLEFT", Checkbox, 1, -1)
+	Checkbox.Hover:SetPoint("BOTTOMRIGHT", Checkbox, -1, 1)
+	Checkbox.Hover:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-bright-color"]))
+	Checkbox.Hover:SetTexture(Assets:GetTexture("RenHorizonUp"))
+	Checkbox.Hover:SetAlpha(0)
+	
+	Checkbox.Fade = CreateAnimationGroup(Checkbox.Texture)
+	
+	Checkbox.FadeIn = Checkbox.Fade:CreateAnimation("Fade")
+	Checkbox.FadeIn:SetEasing("in")
+	Checkbox.FadeIn:SetDuration(0.15)
+	Checkbox.FadeIn:SetChange(1)
+	
+	Checkbox.FadeOut = Checkbox.Fade:CreateAnimation("Fade")
+	Checkbox.FadeOut:SetEasing("out")
+	Checkbox.FadeOut:SetDuration(0.15)
+	Checkbox.FadeOut:SetChange(0)
+	
+	if Checkbox.Value then
+		Checkbox.Texture:SetAlpha(1)
+	else
+		Checkbox.Texture:SetAlpha(0)
+	end
+	
+	tinsert(self.Widgets, Anchor)
+	
+	return Checkbox
 end
 
 -- Switch
@@ -1753,21 +2046,29 @@ function GUI2:CreateWidgetWindow(category, name, parent)
 		Window.RightWidgetsBG[Name] = Function
 	end
 	
-	--[[if parent then
-		for i = 1, #category.Children do
-			if (category.Children[i].Name == name) then
-				category.Children[i].Window = Window
-			end
+	if (parent and self.OnLoadCalls[category][parent].Children) then
+		for i = 1, #self.OnLoadCalls[category][parent].Children[name].Calls do
+			self.OnLoadCalls[category][parent].Children[name].Calls[1](Window.LeftWidgetsBG, Window.RightWidgetsBG)
+			
+			tremove(self.OnLoadCalls[category][parent].Children[name].Calls, 1)
 		end
 	else
-		category.Window = Window
-	end]]
-	
-	for i = 1, #self.OnLoadCalls[category][name].Calls do
-		self.OnLoadCalls[category][name].Calls[1](Window.LeftWidgetsBG, Window.RightWidgetsBG)
-		
-		tremove(self.OnLoadCalls[category][name].Calls, 1)
+		for i = 1, #self.OnLoadCalls[category][name].Calls do
+			self.OnLoadCalls[category][name].Calls[1](Window.LeftWidgetsBG, Window.RightWidgetsBG)
+			
+			tremove(self.OnLoadCalls[category][name].Calls, 1)
+		end
 	end
+	
+	if (#Window.LeftWidgetsBG.Widgets > 0) then
+		Window.LeftWidgetsBG:CreateFooter()
+	end
+	
+	if (#Window.RightWidgetsBG.Widgets > 0) then
+		Window.RightWidgetsBG:CreateFooter()
+	end
+	
+	Window:SortWindow()
 	
 	return Window
 end
@@ -1777,308 +2078,71 @@ function GUI2:LoadWindow(category, name, parent)
 end
 
 function GUI2:ShowWindow(category, name, parent)
-	--load and initialize the window if needed
-	
-	-- hide all windows
-	-- show the right one
 	-- add hooks here?
-	
-	--if parent then
-		
-	--else
-		for i = 1, #self.Categories do
-			for j = 1, #self.Categories[i].Buttons do
-			
-				if parent then
-					--[[if (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == parent) then
-						print('yaaas')
-					else
-						print('no')
-					end]]
-					
-					if self.Categories[i].Buttons[j].Children then
-						for o = 1, #self.Categories[i].Buttons[j].Children do
-							if (self.Categories[i].Buttons[j].Children[o].Name == name) then
-								if (not self.Categories[i].Buttons[j].Children[o].Window) then
-									local Window = self:CreateWidgetWindow(category, name, parent)
-									
-									Window:SortWindow()
-									
-									self.Categories[i].Buttons[j].Children[o].Window = Window
-								end
-								print('?')
-								self.Categories[i].Buttons[j].Children[o].Window:Show()
-								
-								--[[ children
-								if self.Categories[i].Buttons[j].Children then
-									for o = 1, #self.Categories[i].Buttons[j].Children do
-										if (self.Categories[i].Buttons[j].Children[o].Name == name) then
-											if self.Categories[i].Buttons[j].Children[o].Window then
-												self.Categories[i].Buttons[j].Children[o].Window:Show()
-											end
-										elseif self.Categories[i].Buttons[j].Children[o].Window then
-											self.Categories[i].Buttons[j].Children[o].Window:Hide()
-										end
-									end
-									
-									self.Categories[i].Buttons[j].ChildrenShown = true
-								end]]
-								
-							elseif self.Categories[i].Buttons[j].Children[o].Window then
-								self.Categories[i].Buttons[j].Children[o].Window:Hide()
-								
-								--[[if self.Categories[i].Buttons[j].Children then
-									for o = 1, #self.Categories[i].Buttons[j].Children do
-										if self.Categories[i].Buttons[j].Children[o].Window then
-											self.Categories[i].Buttons[j].Children[o].Window:Hide()
-										end
-										
-										self.Categories[i].Buttons[j].Children[o]:Hide()
-									end
-									
-									self.Categories[i].Buttons[j].ChildrenShown = false
-								end]]
-							end
-						end
-					end
-				elseif (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == name) then
-				
-				
-				--[[ concept piece
-					if parent then
-						if self.Categories[i].Buttons[j].Children then
-							for o = 1, #self.Categories[i].Buttons[j].Children do
-								if (self.Categories[i].Buttons[j].Children[o].Name == name) then
-									if (not self.Categories[i].Buttons[j].Children[o].Window) then
-										local Window = self:CreateWidgetWindow(category, name, parent)
-										
-										Window:SortWindow()
-										
-										self.Categories[i].Buttons[j].Children[o].Window = Window
-									end
-									
-									self.Categories[i].Buttons[j].Children[o].Window:Show()
-								end
-							end
-						end
-					else
-						if (not self.Categories[i].Buttons[j].Window) then
-							local Window = self:CreateWidgetWindow(category, name, parent)
-							
-							Window:SortWindow()
-							
-							self.Categories[i].Buttons[j].Window = Window
-						end
-						
-						self.Categories[i].Buttons[j].Window:Show()
-					end
-				--]]
-				
-					if parent then
-						if self.Categories[i].Buttons[j].Children then
-							for o = 1, #self.Categories[i].Buttons[j].Children do
-								if (self.Categories[i].Buttons[j].Children[o].Name == name) then
-									if (not self.Categories[i].Buttons[j].Children[o].Window) then
-										local Window = self:CreateWidgetWindow(category, name, parent)
-										
-										Window:SortWindow()
-										
-										self.Categories[i].Buttons[j].Children[o].Window = Window
-									end
-									
-									self.Categories[i].Buttons[j].Children[o].Window:Show()
-								end
-							end
-						end
-					else
-						if (not self.Categories[i].Buttons[j].Window) then
-							local Window = self:CreateWidgetWindow(category, name, parent)
-							
-							Window:SortWindow()
-							
-							self.Categories[i].Buttons[j].Window = Window
-						end
-						
-						self.Categories[i].Buttons[j].Window:Show()
-					end
-				
-				--[[	if (not self.Categories[i].Buttons[j].Window) then
-						local Window = self:CreateWidgetWindow(category, name, parent)
-						
-						Window:SortWindow()
-						
-						self.Categories[i].Buttons[j].Window = Window
-					end
-					
-					self.Categories[i].Buttons[j].Window:Show()]]
-					
-					-- children
-					if self.Categories[i].Buttons[j].Children then
-						for o = 1, #self.Categories[i].Buttons[j].Children do
-							if (self.Categories[i].Buttons[j].Children[o].Name == name) then
-								if self.Categories[i].Buttons[j].Children[o].Window then
-									self.Categories[i].Buttons[j].Children[o].Window:Show()
-								end
-							elseif self.Categories[i].Buttons[j].Children[o].Window then
-								self.Categories[i].Buttons[j].Children[o].Window:Hide()
-							end
-						end
-						
-						self.Categories[i].Buttons[j].ChildrenShown = true
-					end
-				else
-					if self.Categories[i].Buttons[j].Window then
-						self.Categories[i].Buttons[j].Window:Hide()
-						
-						if self.Categories[i].Buttons[j].Children then
-							for o = 1, #self.Categories[i].Buttons[j].Children do
-								if self.Categories[i].Buttons[j].Children[o].Window then
-									self.Categories[i].Buttons[j].Children[o].Window:Hide()
-								end
-								
-								self.Categories[i].Buttons[j].Children[o]:Hide()
-							end
-							
-							self.Categories[i].Buttons[j].ChildrenShown = false
-						end
-					end
-				end
-			end
-		end
-	--end
-	
-	self:ScrollSelections()
-	
-	if 1 == 1 then return end
-	
 	for i = 1, #self.Categories do
-		if (self.Categories[i].Name == category) then
-			
+		for j = 1, #self.Categories[i].Buttons do
 			if parent then
-				--self:CreateWidgetWindow(self.CategoryNames[category], name, parent)
-			else
-				for j = 1, #self.Categories[i].Buttons do
-					if (self.Categories[i].Buttons[j].Name == name) then
-						self.Categories[i].Buttons[j].Window:Show()
-					elseif self.Categories[i].Buttons[j].Window then
-						self.Categories[i].Buttons[j].Window:Hide()
-						
-						if self.Categories[i].Buttons[j].Children and self.Categories[i].Buttons[j].ChildrenShown then -- and self.Categories[i].ChildrenShown then
-							for o = 1, #self.Categories[i].Buttons[j].Children do
-								self.Categories[i].Buttons[j].Children[o]:Hide()
+				if (self.Categories[i].Buttons[j].Name == parent and self.Categories[i].Buttons[j].Children) then
+					for o = 1, #self.Categories[i].Buttons[j].Children do
+						if (self.Categories[i].Buttons[j].Children[o].Name == name) then
+							if (not self.Categories[i].Buttons[j].Children[o].Window) then
+								local Window = self:CreateWidgetWindow(category, name, parent)
 								
-								self.Categories[i].Buttons[j].ChildrenShown = false
+								self.Categories[i].Buttons[j].Children[o].Window = Window
 							end
+							
+							self.Categories[i].Buttons[j].Window:Hide()
+							
+							self.Categories[i].Buttons[j].Children[o].Window:Show()
+						elseif self.Categories[i].Buttons[j].Children[o].Window then
+							self.Categories[i].Buttons[j].Children[o].Window:Hide()
 						end
-					end
-				end
-			end
-			
-			for j = 1, #self.Categories[i].Buttons do
-				if (self.Categories[i].Buttons[j].Name == name) then
-					local Category = self.Categories[i].Buttons[j]
-					
-					if parent then
-						--[[for i = 1, #self.Categories[i].Buttons[j].Children do
-							if (self.Categories[i].Buttons[j].Name == name) then
-								self:CreateWidgetWindow(Category, name, parent)
-							end
-						end]]
-						self:CreateWidgetWindow(self.CategoryNames[category], name, parent) -- uncomment
-					end
-					
-					if (not Category.Loaded) then
-						self:CreateWidgetWindow(Category, name, parent) -- uncomment
-						
-						-- Load window widgets
-						if (self.OnLoadCalls[category] and self.OnLoadCalls[category][name]) then
-							if parent then
-								--self.OnLoadCalls[category][parent].Children[name].Calls
-								
-								for f = 1, #self.OnLoadCalls[category][parent].Children[name].Calls do
-									self.OnLoadCalls[category][parent].Children[name].Calls[1](Category.Window.LeftWidgetsBG, Category.Window.RightWidgetsBG)
-									
-									tremove(self.OnLoadCalls[category][parent].Children[name].Calls, 1)
-								end
-								print('nothing happens')
-							else
-								--self.OnLoadCalls[category][name].Calls
-								
-								for f = 1, #self.OnLoadCalls[category][name].Calls do
-									self.OnLoadCalls[category][name].Calls[1](Category.Window.LeftWidgetsBG, Category.Window.RightWidgetsBG)
-									
-									tremove(self.OnLoadCalls[category][name].Calls, 1)
-								end
-								
-								if (not Category.Window.Sorted) then
-									Category.Window:SortWindow()
-									
-									Category.Window.Sorted = true
-								end
-							end
-						end
-						
-						Category.Loaded = true
-					end
-					
-					-- children
-					if Category.Children then
-						-- show the children buttons, adjust scroll bar limits, then rescroll
-						for o = 1, #Category.Children do
-							if (Category.Children[o].Name == name) then
-								if Category.Children[o].Window then
-									Category.Children[o].Window:Show()
-								end
-							elseif Category.Children[o].Window then
-								Category.Children[o].Window:Hide()
-							end
-						end
-						
-						Category.ChildrenShown = true
-					else
-						Category.Window:Show()
 					end
 				elseif self.Categories[i].Buttons[j].Window then
 					self.Categories[i].Buttons[j].Window:Hide()
+				end
+			elseif (self.Categories[i].Name == category) and (self.Categories[i].Buttons[j].Name == name) then
+				if (not self.Categories[i].Buttons[j].Window) then
+					local Window = self:CreateWidgetWindow(category, name, parent)
 					
-					if self.Categories[i].Buttons[j].Children and self.Categories[i].Buttons[j].ChildrenShown then -- and self.Categories[i].ChildrenShown then
-						for o = 1, #self.Categories[i].Buttons[j].Children do
-							self.Categories[i].Buttons[j].Children[o]:Hide()
-							
-							self.Categories[i].Buttons[j].ChildrenShown = false
+					self.Categories[i].Buttons[j].Window = Window
+				end
+				
+				self.Categories[i].Buttons[j].Window:Show()
+				
+				-- children
+				if self.Categories[i].Buttons[j].Children then
+					for o = 1, #self.Categories[i].Buttons[j].Children do
+						if self.Categories[i].Buttons[j].Children[o].Window then
+							self.Categories[i].Buttons[j].Children[o].Window:Hide()
 						end
+						
+						self.Categories[i].Buttons[j].Children[o]:Hide()
+					end
+					
+					self.Categories[i].Buttons[j].ChildrenShown = true
+				end
+			else
+				if self.Categories[i].Buttons[j].Window then
+					self.Categories[i].Buttons[j].Window:Hide()
+					
+					if self.Categories[i].Buttons[j].Children then
+						for o = 1, #self.Categories[i].Buttons[j].Children do
+							if self.Categories[i].Buttons[j].Children[o].Window then
+								self.Categories[i].Buttons[j].Children[o].Window:Hide()
+							end
+							
+							self.Categories[i].Buttons[j].Children[o]:Hide()
+						end
+						
+						self.Categories[i].Buttons[j].ChildrenShown = false
 					end
 				end
 			end
-		else
-			for j = 1, #self.Categories[i].Buttons do
-				if self.Categories[i].Buttons[j].Window then
-					self.Categories[i].Buttons[j].Window:Hide()
-				end
-			end
-		end 
+		end
 	end
 	
 	self:ScrollSelections()
-	
-	--[[for WindowName, Window in pairs(self.Windows) do
-		if (WindowName ~= name) then
-			Window:Hide()
-			
-			if (Window.Button.Selected:GetAlpha() > 0) then
-				Window.Button.FadeOut:Play()
-			end
-		else
-			if (not Window.Sorted) then
-				Window:SortWindow()
-				
-				Window.Sorted = true
-			end
-			
-			Window.Button.FadeIn:Play()
-			Window:Show()
-		end
-	end]]
 	
 	--CloseLastDropdown()
 end
@@ -2196,8 +2260,6 @@ function GUI2:CreateWindow(category, name, parent)
 	end
 end
 
-GUI2.OnLoadCalls = {}
-
 function GUI2:AddSettings(category, name, arg1, arg2)
 	if (not self.OnLoadCalls[category]) then
 		self.OnLoadCalls[category] = {}
@@ -2212,13 +2274,13 @@ function GUI2:AddSettings(category, name, arg1, arg2)
 		
 		self:CreateWindow(category, name)
 	elseif (type(arg1) == "string") then
-		if (not self.OnLoadCalls[category][name].Children) then
-			self.OnLoadCalls[category][name].Children = {}
+		if (not self.OnLoadCalls[category][arg1].Children) then
+			self.OnLoadCalls[category][arg1].Children = {}
 		end
 		
-		self.OnLoadCalls[category][name].Children[arg1] = {Calls = {}}
+		self.OnLoadCalls[category][arg1].Children[name] = {Calls = {}}
 		
-		tinsert(self.OnLoadCalls[category][name].Children[arg1].Calls, arg2)
+		tinsert(self.OnLoadCalls[category][arg1].Children[name].Calls, arg2)
 		
 		self:CreateWindow(category, name, arg1)
 	end
@@ -2261,25 +2323,7 @@ function GUI2:ScrollSelections()
 						self.Categories[i].Buttons[j].Children[o]:Hide()
 					end
 				end
-			--[[else
-				Count = Count + 1
-				
-				if (Count >= self.Offset) and (Count <= self.Offset + MAX_WIDGETS_SHOWN - 1) then
-					tinsert(self.SortScrollButtons, self.Categories[i].Buttons[j])
-				end]]
 			end
-			
-		--[[if (Count >= self.Offset) and (Count <= self.Offset + MAX_WIDGETS_SHOWN - 1) then
-				if self.Categories[i].Buttons[j].ChildrenShown then
-					for o = 1, #self.Categories[i].Buttons[j].Children do
-						self.Categories[i].Buttons[j].Children[o]:Show()
-						
-						tinsert(self.SortScrollButtons, self.Categories[i].Buttons[j].Children[o])
-					end
-				else
-					tinsert(self.SortScrollButtons, self.Categories[i].Buttons[j])
-				end
-			end]]
 			
 			self.Categories[i].Buttons[j]:Hide()
 		end
@@ -2563,15 +2607,71 @@ end
 
 -- Spoof testing
 GUI2:AddSettings("General", "Auras", function(left, right)
-	left:CreateLine("Auras")
+	left:CreateHeader(Language["Enable"])
+	left:CreateSwitch("auras-enable", Settings["auras-enable"], Language["Enable Auras Module"], Language["Enable the vUI auras module"])
+	
+	right:CreateHeader(Language["Styling"])
+	right:CreateSlider("auras-size", Settings["auras-size"], 20, 40, 1, Language["Size"], Language["Set the size of auras"])
+	right:CreateSlider("auras-spacing", Settings["auras-spacing"], 0, 10, 1, Language["Spacing"], Language["Set the spacing between auras"])
+	right:CreateSlider("auras-row-spacing", Settings["auras-row-spacing"], 0, 30, 1, Language["Row Spacing"], Language["Set the vertical spacing between aura rows"])
+	right:CreateSlider("auras-per-row", Settings["auras-per-row"], 8, 16, 1, Language["Display Per Row"], Language["Set the number of auras per row"])
 end)
 
 GUI2:AddSettings("General", "Azerite", function(left, right)
-	left:CreateLine("Azerite")
+	left:CreateHeader(Language["Enable"])
+	left:CreateSwitch("azerite-enable", true, Language["Enable Azerite Module"], Language["Enable the vUI azerite module"])
+	
+	left:CreateHeader(Language["Styling"])
+	left:CreateSwitch("azerite-display-progress", Settings["azerite-display-progress"], Language["Display Progress Value"], Language["Display your current progress information in the azerite bar"])
+	left:CreateSwitch("azerite-display-percent", Settings["azerite-display-percent"], Language["Display Percent Value"], Language["Display your current percent information in the azerite bar"])
+	left:CreateSwitch("azerite-show-tooltip", Settings["azerite-show-tooltip"], Language["Enable Tooltip"], Language["Display a tooltip when mousing over the azerite bar"])
+	left:CreateSwitch("azerite-animate", Settings["azerite-animate"], Language["Animate Azerite Changes"], Language["Smoothly animate changes to the azerite bar"])
+	
+	right:CreateHeader(Language["Size"])
+	right:CreateSlider("azerite-width", Settings["azerite-width"], 240, 400, 10, Language["Bar Width"], Language["Set the width of the azerite bar"])
+	right:CreateSlider("azerite-height", Settings["azerite-height"], 6, 30, 1, Language["Bar Height"], Language["Set the height of the azerite bar"])
+	
+	right:CreateHeader(Language["Visibility"])
+	right:CreateDropdown("azerite-progress-visibility", Settings["azerite-progress-visibility"], {[Language["Always Show"]] = "ALWAYS", [Language["Mouseover"]] = "MOUSEOVER"}, Language["Progress Text"], Language["Set when to display the progress information"])
+	right:CreateDropdown("azerite-percent-visibility", Settings["azerite-percent-visibility"], {[Language["Always Show"]] = "ALWAYS", [Language["Mouseover"]] = "MOUSEOVER"}, Language["Percent Text"], Language["Set when to display the percent information"])
+	
+	left:CreateHeader("Mouseover")
+	left:CreateSwitch("azerite-mouseover", Settings["azerite-mouseover"], Language["Display On Mouseover"], Language["Only display the azerite bar while mousing over it"])
+	left:CreateSlider("azerite-mouseover-opacity", Settings["azerite-mouseover-opacity"], 0, 100, 5, Language["Mouseover Opacity"], Language["Set the opacity of the azerite bar while not mousing over it"], nil, nil, "%")
 end)
 
 GUI2:AddSettings("General", "Chat", function(left, right)
-	left:CreateLine("Chat")
+	left:CreateHeader(Language["Enable"])
+	left:CreateSwitch("chat-enable", Settings["chat-enable"], Language["Enable Chat Module"], Language["Enable the vUI chat module"])
+	
+	left:CreateHeader(Language["General"])
+	left:CreateSlider("chat-frame-width", Settings["chat-frame-width"], 300, 650, 1, Language["Chat Width"], Language["Set the width of the chat frame"])
+	left:CreateSlider("chat-frame-height", Settings["chat-frame-height"], 40, 350, 1, Language["Chat Height"], Language["Set the height of the chat frame"])
+	left:CreateSlider("chat-bg-opacity", Settings["chat-bg-opacity"], 0, 100, 5, Language["Background Opacity"], Language["Set the opacity of the chat background"], nil, nil, "%")
+	left:CreateSlider("chat-fade-time", Settings["chat-enable-fading"], 0, 60, 5, Language["Set Fade Time"], Language["Set the duration to display text before fading out"], nil, nil, "s")
+	left:CreateSwitch("chat-enable-fading", Settings["chat-enable-fading"], Language["Enable Text Fading"], Language["Set the text to fade after the set amount of time"])
+	left:CreateSwitch("chat-link-tooltip", Settings["chat-link-tooltip"], Language["Show Link Tooltips"], Language["Display a tooltip when hovering over links in chat"])
+	
+	right:CreateHeader(Language["Install"])
+	right:CreateButton(Language["Install"], Language["Install Chat Defaults"], Language["Set default channels and settings related to chat"])
+	
+	left:CreateHeader(Language["Links"])
+	left:CreateSwitch("chat-enable-url-links", Settings["chat-enable-url-links"], Language["Enable URL Links"], Language["Enable URL links in the chat frame"])
+	left:CreateSwitch("chat-enable-discord-links", Settings["chat-enable-discord-links"], Language["Enable Discord Links"], Language["Enable Discord links in the chat frame"])
+	left:CreateSwitch("chat-enable-email-links", Settings["chat-enable-email-links"], Language["Enable Email Links"], Language["Enable email links in the chat frame"])
+	left:CreateSwitch("chat-enable-friend-links", Settings["chat-enable-friend-links"], Language["Enable Friend Tag Links"], Language["Enable friend tag links in the chat frame"])
+	
+	right:CreateHeader(Language["Chat Frame Font"])
+	right:CreateDropdown("chat-font", Settings["chat-font"], Assets:GetFontList(), Language["Font"], "Set the font of the chat frame", nil, "Font")
+	right:CreateSlider("chat-font-size", Settings["chat-font-size"], 8, 32, 1, "Font Size", "Set the font size of the chat frame")
+	right:CreateDropdown("chat-font-flags", Settings["chat-font-flags"], Assets:GetFlagsList(), Language["Font Flags"], "Set the font flags of the chat frame")
+	
+	right:CreateHeader(Language["Tab Font"])
+	right:CreateDropdown("chat-tab-font", Settings["chat-tab-font"], Assets:GetFontList(), Language["Font"], "Set the font of the chat frame tabs", nil, "Font")
+	right:CreateSlider("chat-tab-font-size", Settings["chat-tab-font-size"], 8, 32, 1, "Font Size", "Set the font size of the chat frame tabs")
+	right:CreateDropdown("chat-tab-font-flags", Settings["chat-tab-font-flags"], Assets:GetFlagsList(), Language["Font Flags"], "Set the font flags of the chat frame tabs")
+	right:CreateColorSelection("chat-tab-font-color", Settings["chat-tab-font-color"], Language["Font Color"], "Set the color of the chat frame tabs")
+	right:CreateColorSelection("chat-tab-font-color-mouseover", Settings["chat-tab-font-color-mouseover"], Language["Font Color Mouseover"], "Set the color of the chat frame tab while mousing over it")
 end)
 
 GUI2:AddSettings("General", "Colors", function(left, right)
@@ -2579,11 +2679,60 @@ GUI2:AddSettings("General", "Colors", function(left, right)
 end)
 
 GUI2:AddSettings("General", "Data Texts", function(left, right)
-	left:CreateLine("Data Texts")
+	left:CreateHeader(Language["Chat Frame Texts"])
+	left:CreateDropdown("data-text-chat-left", Settings["data-text-chat-left"], DT.List, Language["Set Left Text"], Language["Set the information to be displayed in the left data text anchor"])
+	left:CreateDropdown("data-text-chat-middle", Settings["data-text-chat-middle"], DT.List, Language["Set Middle Text"], Language["Set the information to be displayed in the middle data text anchor"])
+	left:CreateDropdown("data-text-chat-right", Settings["data-text-chat-right"], DT.List, Language["Set Right Text"], Language["Set the information to be displayed in the right data text anchor"])
+	
+	left:CreateHeader(Language["Mini Map Texts"])
+	left:CreateDropdown("data-text-minimap-top", Settings["data-text-minimap-top"], DT.List, Language["Set Top Text"], Language["Set the information to be displayed in the top mini map data text anchor"])
+	left:CreateDropdown("data-text-minimap-bottom", Settings["data-text-minimap-bottom"], DT.List, Language["Set Bottom Text"], Language["Set the information to be displayed in the bottom mini map data text anchor"])
+	
+	right:CreateHeader(Language["Font"])
+	right:CreateDropdown("data-text-font", Settings["data-text-font"], Assets:GetFontList(), Language["Font"], Language["Set the font of the data texts"], nil, "Font")
+	right:CreateSlider("data-text-font-size", Settings["data-text-font-size"], 8, 32, 1, Language["Font Size"], Language["Set the font size of the data texts"])
+	right:CreateDropdown("data-text-font-flags", Settings["data-text-font-flags"], Assets:GetFlagsList(), Language["Font Flags"], Language["Set the font flags of the data texts"])
+	
+	right:CreateHeader(Language["Colors"])
+	right:CreateColorSelection("data-text-label-color", Settings["data-text-label-color"], Language["Label Color"], Language["Set the text color of data text labels"])
+	right:CreateColorSelection("data-text-value-color", Settings["data-text-value-color"], Language["Value Color"], Language["Set the text color of data text values"])
+	
+	right:CreateHeader(Language["Styling"])
+	right:CreateSwitch("data-text-enable-tooltips", Settings["data-text-enable-tooltips"], Language["Enable Tooltips"], Language["Display tooltip information when hovering over data texts"])
+	right:CreateSwitch("data-text-hover-tooltips", Settings["data-text-hover-tooltips"], Language["Hover Tooltips"], Language["Display tooltip information directly by the data text instead of at the default tooltip location"])
+	right:CreateSwitch("data-text-24-hour", Settings["data-text-24-hour"], Language["Enable 24 Hour Time"], Language["Display time in a 24 hour format"])
+	
+	right:CreateHeader(Language["Gold"])
+	right:CreateButton(Language["Reset"], Language["Reset Gold"], Language["Reset stored information for each characters gold"])
 end)
 
 GUI2:AddSettings("General", "Experience", function(left, right)
-	left:CreateLine("Experience")
+	left:CreateHeader(Language["Enable"])
+	left:CreateSwitch("experience-enable", Settings["experience-enable"], Language["Enable Experience Module"], Language["Enable the vUI experience module"])
+	
+	left:CreateHeader(Language["Styling"])
+	left:CreateSwitch("experience-display-level", Settings["experience-display-level"], Language["Display Level"], Language["Display your current level in the experience bar"])
+	left:CreateSwitch("experience-display-progress", Settings["experience-display-progress"], Language["Display Progress Value"], Language["Display your current progressinformation in the experience bar"])
+	left:CreateSwitch("experience-display-percent", Settings["experience-display-percent"], Language["Display Percent Value"], Language["Display your current percentinformation in the experience bar"])
+	left:CreateSwitch("experience-display-rested-value", Settings["experience-display-rested-value"], Language["Display Rested Value"], Language["Display your current restedvalue on the experience bar"])
+	left:CreateSwitch("experience-show-tooltip", Settings["experience-show-tooltip"], Language["Enable Tooltip"], Language["Display a tooltip when mousing over the experience bar"])
+	left:CreateSwitch("experience-animate", Settings["experience-animate"], Language["Animate Experience Changes"], Language["Smoothly animate changes to the experience bar"])
+	
+	right:CreateHeader(Language["Size"])
+	right:CreateSlider("experience-width", Settings["experience-width"], 240, 400, 10, Language["Bar Width"], Language["Set the width of the experience bar"])
+	right:CreateSlider("experience-height", Settings["experience-height"], 6, 30, 1, Language["Bar Height"], Language["Set the height of the experience bar"])
+	
+	right:CreateHeader(Language["Colors"])
+	right:CreateColorSelection("experience-bar-color", Settings["experience-bar-color"], Language["Experience Color"], Language["Set the color of the experience bar"])
+	right:CreateColorSelection("experience-rested-color", Settings["experience-rested-color"], Language["Rested Color"], Language["Set the color of the rested bar"])
+	
+	right:CreateHeader(Language["Visibility"])
+	right:CreateDropdown("experience-progress-visibility", Settings["experience-progress-visibility"], {[Language["Always Show"]] = "ALWAYS", [Language["Mouseover"]] = "MOUSEOVER"}, Language["Progress Text"], Language["Set when to display the progress information"])
+	right:CreateDropdown("experience-percent-visibility", Settings["experience-percent-visibility"], {[Language["Always Show"]] = "ALWAYS", [Language["Mouseover"]] = "MOUSEOVER"}, Language["Percent Text"], Language["Set when to display the percent information"])
+	
+	left:CreateHeader("Mouseover")
+	left:CreateSwitch("experience-mouseover", Settings["experience-mouseover"], Language["Display On Mouseover"], Language["Only display the experience bar while mousing over it"])
+	left:CreateSlider("experience-mouseover-opacity", Settings["experience-mouseover-opacity"], 0, 100, 5, Language["Mouseover Opacity"], Language["Set the opacity of the experience bar while not mousing over it"], nil, nil, "%")
 end)
 
 GUI2:AddSettings("General", "General", function(left, right)
@@ -2591,7 +2740,22 @@ GUI2:AddSettings("General", "General", function(left, right)
 end)
 
 GUI2:AddSettings("General", "Mini Map", function(left, right)
-	left:CreateLine("Mini Map")
+	left:CreateHeader(Language["Enable"])
+	left:CreateSwitch("minimap-enable", Settings["minimap-enable"], Language["Enable Mini Map Module"], Language["Enable the vUI mini map module"])
+	
+	left:CreateHeader(Language["Styling"])
+	left:CreateSlider("minimap-size", Settings["minimap-size"], 100, 250, 10, Language["Mini Map Size"], Language["Set the size of the mini map"])
+	left:CreateSwitch("minimap-show-top", Settings["minimap-show-top"], Language["Enable Top Bar"], Language["Enable the data text bar on top of the mini map"])
+	left:CreateSwitch("minimap-show-bottom", Settings["minimap-show-bottom"], Language["Enable Bottom Bar"], Language["Enable the data text bar on the bottom of the mini map"])
+	left:CreateSwitch("minimap-show-tracking", Settings["minimap-show-tracking"], Language["Enable Tracking"], Language["Enable the tracking button in the top left of the mini map"])
+end)
+
+GUI2:AddSettings("General", "Mini Map", function(left, right)
+	right:CreateHeader(Language["Minimap Buttons"])
+	right:CreateSwitch("minimap-buttons-enable", Settings["minimap-buttons-enable"], "Enable Minimap Button Bar", "")
+	right:CreateSlider("minimap-buttons-size", Settings["minimap-buttons-size"], 16, 44, 1, "Button Size", "")
+	right:CreateSlider("minimap-buttons-spacing", Settings["minimap-buttons-spacing"], 1, 5, 1, "Button Spacing", "")
+	right:CreateSlider("minimap-buttons-perrow", Settings["minimap-buttons-perrow"], 1, 20, 1, "Per Row", "")
 end)
 
 GUI2:AddSettings("General", "Name Plates", function(left, right)
@@ -2642,19 +2806,31 @@ GUI2:AddSettings("General", "Tooltips", function(left, right)
 end)
 
 GUI2:AddSettings("General", "Action Bars", function(left, right)
-	left:CreateLine("Action Bars")
+	left:CreateHeader(Language["Enable"])
+	left:CreateSwitch("ab-enable", Settings["ab-enable"], Language["Enable Action Bar"], Language["Enable action bars module"])
 end)
 
 GUI2:AddSettings("General", "Bar 1", "Action Bars", function(left, right)
-	left:CreateLine("Action Bars - Bar 1")
-end)
-
-GUI2:AddSettings("General", "Bar 2", "Action Bars", function(left, right)
-	left:CreateLine("Action Bars - Bar 2")
-end)
-
-GUI2:AddSettings("General", "Bar 3", "Action Bars", function(left, right)
-	left:CreateLine("Action Bars - Bar 3")
+	left:CreateHeader(Language["Enable"])
+	left:CreateSwitch("ab-enable", Settings["ab-enable"], Language["Enable Action Bar"], Language["Enable action bars module"])
+	
+	left:CreateHeader(Language["Enable"])
+	left:CreateSwitch("ab-bar1-hover", Settings["ab-bar1-hover"], Language["Set Mouseover"], Language["Only display the bar while hovering over it"])
+	left:CreateSlider("ab-bar1-per-row", Settings["ab-bar1-per-row"], 1, 12, 1, Language["Buttons Per Row"], Language["Set the number of buttons per row"])
+	left:CreateSlider("ab-bar1-button-max", Settings["ab-bar1-button-max"], 1, 12, 1, Language["Max Buttons"], Language["Set the number of buttons displayed on the action bar"])
+	left:CreateSlider("ab-bar1-button-size", Settings["ab-bar1-button-size"], 20, 50, 1, Language["Button Size"], Language["Set the action button size"])
+	left:CreateSlider("ab-bar1-button-gap", Settings["ab-bar1-button-gap"], -1, 8, 1, Language["Button Spacing"], Language["Set the spacing between action buttons"])
+	
+	right:CreateHeader(Language["Styling"])
+	right:CreateSwitch("ab-show-hotkey", Settings["ab-show-hotkey"], Language["Show Hotkeys"], Language["Display hotkey text on action buttons"])
+	right:CreateSwitch("ab-show-macro", Settings["ab-show-macro"], Language["Show Macro Names"], Language["Display macro name text on action buttons"])
+	right:CreateSwitch("ab-show-count", Settings["ab-show-count"], Language["Show Count Text"], Language["Display count text on action buttons"])
+	
+	right:CreateHeader(Language["Font"])
+	right:CreateDropdown("ab-font", Settings["ab-font"], Assets:GetFontList(), Language["Font"], Language["Set the font of the action bar buttons"], nil, "Font")
+	right:CreateSlider("ab-font-size", Settings["ab-font-size"], 8, 42, 1, Language["Font Size"], Language["Set the font size of the action bar buttons"])
+	right:CreateSlider("ab-cd-size", Settings["ab-cd-size"], 8, 42, 1, Language["Cooldown Font Size"], Language["Set the font size of the action bar cooldowns"])
+	right:CreateDropdown("ab-font-flags", Settings["ab-font-flags"], Assets:GetFlagsList(), Language["Font Flags"], Language["Set the font flags of the action bar buttons"])
 end)
 
 GUI2:AddSettings("General", "Unit Frames", function(left, right)
@@ -2663,6 +2839,10 @@ end)
 
 GUI2:AddSettings("General", "Player", "Unit Frames", function(left, right)
 	left:CreateLine("Unit Frames - Player")
+end)
+
+GUI2:AddSettings("General", "Tags", "Unit Frames", function(left, right)
+	left:CreateLine("Just kidding. Coming soon though.")
 end)
 
 GUI2:AddSettings("Info", "Credits", function(left, right)
@@ -2687,15 +2867,18 @@ GUI2:AddSettings("Info", "Credits", function(left, right)
 	left:CreateHeader("vUI")
 	left:CreateLine("Hydra")
 end)
---[[
+
 GUI2:AddSettings("Dev", "Tools", function(left, right)
 	left:CreateLine("N/A")
 end)
 
 GUI2:AddSettings("Dev", "Info", function(left, right)
 	left:CreateLine("N/A")
+	
+
+	left:CreateStatusBar(50, 0, 100, "Status Bar", "What could it mean?")
 end)
-]]
+
 GUI2:AddSettings("Info", "Supporters", function(left, right)
 	left:CreateSupportHeader(Language["Hall of Legends"])
 	left:CreateDoubleLine("Innie", "Brightsides")
