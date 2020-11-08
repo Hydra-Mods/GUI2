@@ -172,7 +172,26 @@ GUI2:AddSettings("General", "Party", function(left, right)
 end)
 
 GUI2:AddSettings("General", "Profiles", function(left, right)
-	left:CreateLine("Profiles")
+	--left:DisableScrolling()
+	
+	left:CreateHeader(Language["Profiles"])
+	left:CreateDropdown("ui-profile", vUI:GetActiveProfileName(), vUI:GetProfileList(), Language["Select Profile"], Language["Select a profile to load"], UpdateActiveProfile)
+	--left:CreateButton("Apply", "Apply Current Profile", "", UpdateActiveProfile)
+	
+	left:CreateHeader(Language["Modify"])
+	left:CreateInput("profile-key", vUI:GetDefaultProfileKey(), Language["Create New Profile"], Language["Create a new profile to store a different collection of settings"], CreateProfile):DisableSaving()
+	left:CreateInput("profile-delete", vUI:GetDefaultProfileKey(), Language["Delete Profile"], Language["Delete a profile"], DeleteProfile):DisableSaving()
+	left:CreateInput("profile-rename", "", Language["Rename Profile"], Language["Rename the currently selected profile"], RenameProfile):DisableSaving()
+	--left:CreateInput("profile-copy", "", Language["Copy From"], Language["Copy the settings from another profile"], CopyProfile):DisableSaving()
+	left:CreateDropdown("profile-copy", vUI:GetActiveProfileName(), vUI:GetProfileList(), Language["Copy From"], Language["Copy the settings from another profile"], CopyProfile)
+	
+	left:CreateHeader(Language["Manage"])
+	left:CreateButton(Language["Restore"], Language["Restore To Default"], Language["Restore the currently selected profile to default settings"], RestoreToDefault):RequiresReload(true)
+	left:CreateButton(Language["Delete"], Language["Delete Unused Profiles"], Language["Delete any profiles that are not currently in use by any characters"], DeleteUnused)
+	
+	left:CreateHeader(Language["Sharing is caring"])
+	left:CreateButton(Language["Import"], Language["Import A Profile"], Language["Import a profile using an import string"], ShowImportWindow)
+	left:CreateButton(Language["Export"], Language["Export Current Profile"], Language["Export the currently active profile as a string that can be shared with others"], ShowExportWindow)
 end)
 
 GUI2:AddSettings("General", "Raid", function(left, right)
