@@ -434,9 +434,14 @@ function GUI2:ShowWindow(category, name, parent)
 							
 							self.Categories[i].Buttons[j].Window:Hide()
 							
+							self.Categories[i].Buttons[j].Children[o].FadeIn:Play()
 							self.Categories[i].Buttons[j].Children[o].Window:Show()
 						elseif self.Categories[i].Buttons[j].Children[o].Window then
 							self.Categories[i].Buttons[j].Children[o].Window:Hide()
+							
+							if (self.Categories[i].Buttons[j].Children[o].Selected:GetAlpha() > 0) then
+								self.Categories[i].Buttons[j].Children[o].FadeOut:Play()
+							end
 						end
 					end
 				elseif self.Categories[i].Buttons[j].Window then
@@ -449,6 +454,7 @@ function GUI2:ShowWindow(category, name, parent)
 					self.Categories[i].Buttons[j].Window = Window
 				end
 				
+				self.Categories[i].Buttons[j].FadeIn:Play()
 				self.Categories[i].Buttons[j].Window:Show()
 				
 				if self.Categories[i].Buttons[j].Children then
@@ -465,6 +471,10 @@ function GUI2:ShowWindow(category, name, parent)
 			else
 				if self.Categories[i].Buttons[j].Window then
 					self.Categories[i].Buttons[j].Window:Hide()
+					
+					if (self.Categories[i].Buttons[j].Selected:GetAlpha() > 0) then
+						self.Categories[i].Buttons[j].FadeOut:Play()
+					end
 					
 					if self.Categories[i].Buttons[j].Children then
 						for o = 1, #self.Categories[i].Buttons[j].Children do
@@ -533,7 +543,6 @@ function GUI2:CreateWindow(category, name, parent)
 	Button.Selected = Button:CreateTexture(nil, "OVERLAY")
 	Button.Selected:SetPoint("TOPLEFT", Button, 1, -1)
 	Button.Selected:SetPoint("BOTTOMRIGHT", Button, -1, 1)
-	Button.Selected:SetTexture(Assets:GetTexture("RenHorizonUp"))
 	Button.Selected:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-color"]))
 	Button.Selected:SetAlpha(0)
 	
@@ -567,6 +576,8 @@ function GUI2:CreateWindow(category, name, parent)
 		vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], 12)
 		Button.Text:SetText("|cFF" .. Settings["ui-widget-font-color"] .. name .. "|r")
 		
+		Button.Selected:SetTexture(Assets:GetTexture("Blank"))
+		
 		for j = 1, #Category.Buttons do
 			if (Category.Buttons[j].Name == parent) then
 				if (not Category.Buttons[j].Children) then
@@ -588,6 +599,8 @@ function GUI2:CreateWindow(category, name, parent)
 		Button.Texture:SetPoint("BOTTOMRIGHT", Button, -1, 1)
 		Button.Texture:SetTexture(Assets:GetTexture(Settings["ui-button-texture"]))
 		Button.Texture:SetVertexColor(vUI:HexToRGB(Settings["ui-button-texture-color"]))
+		
+		Button.Selected:SetTexture(Assets:GetTexture("RenHorizonUp"))
 		
 		Button.Text:SetPoint("CENTER", Button, 0, -1)
 		Button.Text:SetJustifyH("CENTER")
@@ -910,7 +923,7 @@ function GUI2:CreateGUI()
 	
 	self:SortButtons()
 	
-	self.ScrollBar:SetMinMaxValues(1, (self.NumShownButtons - MAX_WIDGETS_SHOWN) + 1)
+	self.ScrollBar:SetMinMaxValues(1, ((self.NumShownButtons or 15) - MAX_WIDGETS_SHOWN) + 1)
 	self.ScrollBar:SetValue(1)
 	self:SetSelectionOffset(1)
 	self.ScrollBar:Show()
