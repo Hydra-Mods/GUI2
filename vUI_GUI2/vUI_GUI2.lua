@@ -1989,12 +1989,6 @@ local SortWindow = function(self)
 	AddWindowScrollBar(self)
 end
 
---[[
-	what if the window exists, but the callback doesn't fire? and then
-	when we create the button it stores the window as like Button.Window = Window
-	then in the OnMouseUp self.Window:Show()
-]]
-
 function GUI2:CreateWidgetWindow(category, name, parent)
 	-- Window
 	local Window = CreateFrame("Frame", nil, self, "BackdropTemplate")
@@ -2073,10 +2067,6 @@ function GUI2:CreateWidgetWindow(category, name, parent)
 	return Window
 end
 
-function GUI2:LoadWindow(category, name, parent)
-	
-end
-
 function GUI2:ShowWindow(category, name, parent)
 	-- add hooks here?
 	for i = 1, #self.Categories do
@@ -2110,7 +2100,6 @@ function GUI2:ShowWindow(category, name, parent)
 				
 				self.Categories[i].Buttons[j].Window:Show()
 				
-				-- children
 				if self.Categories[i].Buttons[j].Children then
 					for o = 1, #self.Categories[i].Buttons[j].Children do
 						if self.Categories[i].Buttons[j].Children[o].Window then
