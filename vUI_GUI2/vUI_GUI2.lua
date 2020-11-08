@@ -941,6 +941,6 @@ function GUI2:Toggle()
 	end
 end
 
-GUI2_Toggle = function() -- temp global access, remove me
+GUI2_Toggle = function() -- temp global access, remove me -- /run GUI2_Toggle()
 	GUI2:Toggle()
 end
