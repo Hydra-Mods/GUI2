@@ -214,22 +214,6 @@ GUI2:AddSettings("General", "Objectives", function(left, right)
 	left:CreateColorSelection("tracker-color-timeleft", Settings["tracker-color-timeleft"], Language["Time Left"], "")
 	left:CreateColorSelection("tracker-color-timeleft-highlight", Settings["tracker-color-timeleft-highlight"], Language["Time Left Highlight"], "")
 	left:CreateColorSelection("tracker-color-complete", Settings["tracker-color-complete"], Language["Complete"], "")
-	
-	right:CreateHeader(Language["Category Font"])
-	right:CreateDropdown("tracker-module-font", Settings["tracker-module-font"], Assets:GetFontList(), Language["Font"], Language["Set the font of the objective tracker lines"], nil, "Font")
-	right:CreateSlider("tracker-module-font-size", Settings["tracker-module-font-size"], 8, 18, 1, Language["Font Size"], Language["Set the font size of the objective tracker lines"])
-	right:CreateDropdown("tracker-module-font-flags", Settings["tracker-module-font-flags"], Assets:GetFlagsList(), Language["Font Flags"], Language["Set the font flags of the objective tracker lines"])
-	right:CreateColorSelection("tracker-module-font-color", Settings["tracker-module-font-color"], Language["Font Color"], "")
-	
-	right:CreateHeader(Language["Header Font"])
-	right:CreateDropdown("tracker-header-font", Settings["tracker-header-font"], Assets:GetFontList(), Language["Font"], Language["Set the font of the objective tracker header lines"], nil, "Font")
-	right:CreateSlider("tracker-header-font-size", Settings["tracker-header-font-size"], 8, 18, 1, Language["Font Size"], Language["Set the font size of the objective tracker header lines"])
-	right:CreateDropdown("tracker-header-font-flags", Settings["tracker-header-font-flags"], Assets:GetFlagsList(), Language["Font Flags"], Language["Set the font flags of the objective tracker header lines"])
-	
-	right:CreateHeader(Language["Line Font"])
-	right:CreateDropdown("tracker-font", Settings["tracker-font"], Assets:GetFontList(), Language["Font"], Language["Set the font of the objective tracker lines"], nil, "Font")
-	right:CreateSlider("tracker-font-size", Settings["tracker-font-size"], 8, 18, 1, Language["Font Size"], Language["Set the font size of the objective tracker lines"])
-	right:CreateDropdown("tracker-font-flags", Settings["tracker-font-flags"], Assets:GetFlagsList(), Language["Font Flags"], Language["Set the font flags of the objective tracker lines"])
 end)
 
 GUI2:AddSettings("General", "Party", function(left, right)
