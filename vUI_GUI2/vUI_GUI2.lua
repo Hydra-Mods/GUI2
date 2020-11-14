@@ -35,6 +35,7 @@ local LAST_ACTIVE_DROPDOWN
 
 local MAX_WIDGETS_SHOWN = 14
 
+-- Locals
 local type = type
 local pairs = pairs
 local tinsert = table.insert
@@ -44,13 +45,13 @@ local floor = math.floor
 local InCombatLockdown = InCombatLockdown
 local IsModifierKeyDown = IsModifierKeyDown
 
-GUI2.WindowHooks = {onshow = {}, onhide = {}}
-
--- New concept
+-- Storage
 GUI2.Categories = {}
 GUI2.CategoryNames = {}
 GUI2.Widgets = {}
 GUI2.OnLoadCalls = {}
+GUI2.SortScrollButtons = {}
+GUI2.WindowHooks = {onshow = {}, onhide = {}}
 
 local Scroll = function(self)
 	local FirstLeft
@@ -461,6 +462,10 @@ function GUI2:ShowWindow(category, name, parent)
 					for o = 1, #self.Categories[i].Buttons[j].Children do
 						if self.Categories[i].Buttons[j].Children[o].Window then
 							self.Categories[i].Buttons[j].Children[o].Window:Hide()
+							
+							if (self.Categories[i].Buttons[j].Children[o].Selected:GetAlpha() > 0) then
+								self.Categories[i].Buttons[j].Children[o].FadeOut:Play()
+							end
 						end
 						
 						self.Categories[i].Buttons[j].Children[o]:Hide()
@@ -499,10 +504,18 @@ end
 
 local WindowButtonOnEnter = function(self)
 	self.Highlight:SetAlpha(MOUSEOVER_HIGHLIGHT_ALPHA)
+	
+	if self.Arrow then -- And we're not selected
+		self.Arrow:Show()
+	end
 end
 
 local WindowButtonOnLeave = function(self)
 	self.Highlight:SetAlpha(0)
+	
+	if self.Arrow then
+		self.Arrow:Hide()
+	end
 end
 
 local WindowButtonOnMouseUp = function(self)
@@ -571,7 +584,7 @@ function GUI2:CreateWindow(category, name, parent)
 	if parent then
 		Button.Parent = parent
 		
-		Button.Text:SetPoint("LEFT", Button, LABEL_SPACING*3, -1)
+		Button.Text:SetPoint("LEFT", Button, LABEL_SPACING * 3, 0)
 		Button.Text:SetJustifyH("LEFT")
 		vUI:SetFontInfo(Button.Text, Settings["ui-widget-font"], 12)
 		Button.Text:SetText("|cFF" .. Settings["ui-widget-font-color"] .. name .. "|r")
@@ -582,6 +595,13 @@ function GUI2:CreateWindow(category, name, parent)
 			if (Category.Buttons[j].Name == parent) then
 				if (not Category.Buttons[j].Children) then
 					Category.Buttons[j].Children = {}
+					
+					Category.Buttons[j].Arrow = Category.Buttons[j]:CreateTexture(nil, "ARTWORK")
+					Category.Buttons[j].Arrow:SetPoint("RIGHT", Category.Buttons[j], -3, -1)
+					Category.Buttons[j].Arrow:SetSize(16, 16)
+					Category.Buttons[j].Arrow:SetTexture(Assets:GetTexture("Arrow Down"))
+					Category.Buttons[j].Arrow:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-color"]))
+					Category.Buttons[j].Arrow:Hide()
 				end
 				
 				tinsert(Category.Buttons[j].Children, Button)
@@ -638,8 +658,6 @@ function GUI2:AddSettings(category, name, arg1, arg2)
 		self:CreateWindow(category, name, arg1)
 	end
 end
-
-GUI2.SortScrollButtons = {}
 
 function GUI2:ScrollSelections()
 	local Count = 0

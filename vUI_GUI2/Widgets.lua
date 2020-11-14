@@ -203,7 +203,6 @@ GUI2.Widgets.CreateMessage = function(self, text) -- Create as many lines as nee
 	self:CreateLine(Line)
 end
 
--- Header
 GUI2.Widgets.CreateHeader = function(self, text)
 	local Anchor = CreateFrame("Frame", nil, self)
 	Anchor:SetSize(GROUP_WIDTH, WIDGET_HEIGHT)
