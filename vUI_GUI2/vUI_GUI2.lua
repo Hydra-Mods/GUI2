@@ -459,6 +459,8 @@ function GUI2:ShowWindow(category, name, parent)
 				self.Categories[i].Buttons[j].Window:Show()
 				
 				if self.Categories[i].Buttons[j].Children then
+					self.Categories[i].Buttons[j].Arrow:SetTexture(Assets:GetTexture("Arrow Up"))
+					
 					for o = 1, #self.Categories[i].Buttons[j].Children do
 						if self.Categories[i].Buttons[j].Children[o].Window then
 							self.Categories[i].Buttons[j].Children[o].Window:Hide()
@@ -482,6 +484,8 @@ function GUI2:ShowWindow(category, name, parent)
 					end
 					
 					if self.Categories[i].Buttons[j].Children then
+						self.Categories[i].Buttons[j].Arrow:SetTexture(Assets:GetTexture("Arrow Down"))
+					
 						for o = 1, #self.Categories[i].Buttons[j].Children do
 							if self.Categories[i].Buttons[j].Children[o].Window then
 								self.Categories[i].Buttons[j].Children[o].Window:Hide()
@@ -505,17 +509,17 @@ end
 local WindowButtonOnEnter = function(self)
 	self.Highlight:SetAlpha(MOUSEOVER_HIGHLIGHT_ALPHA)
 	
-	if self.Arrow then -- And we're not selected
+	--[[if self.Arrow then -- And we're not selected
 		self.Arrow:Show()
-	end
+	end]]
 end
 
 local WindowButtonOnLeave = function(self)
 	self.Highlight:SetAlpha(0)
 	
-	if self.Arrow then
+	--[[if self.Arrow then
 		self.Arrow:Hide()
-	end
+	end]]
 end
 
 local WindowButtonOnMouseUp = function(self)
@@ -601,7 +605,7 @@ function GUI2:CreateWindow(category, name, parent)
 					Category.Buttons[j].Arrow:SetSize(16, 16)
 					Category.Buttons[j].Arrow:SetTexture(Assets:GetTexture("Arrow Down"))
 					Category.Buttons[j].Arrow:SetVertexColor(vUI:HexToRGB(Settings["ui-widget-color"]))
-					Category.Buttons[j].Arrow:Hide()
+					--Category.Buttons[j].Arrow:Hide()
 				end
 				
 				tinsert(Category.Buttons[j].Children, Button)
