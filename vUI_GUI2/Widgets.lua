@@ -24,34 +24,16 @@ local IsModifierKeyDown = IsModifierKeyDown
 local GetMouseFocus = GetMouseFocus
 
 -- Constants
-local GUI_WIDTH = 726
-local GUI_HEIGHT = 340
 local SPACING = 3
-
-local HEADER_WIDTH = GUI_WIDTH - (SPACING * 2)
 local HEADER_HEIGHT = 20
 local HEADER_SPACING = 5
-
-local BUTTON_LIST_WIDTH = 126
-local BUTTON_LIST_HEIGHT = (GUI_HEIGHT - HEADER_HEIGHT - (SPACING * 2) - 2)
-
-local PARENT_WIDTH = GUI_WIDTH - BUTTON_LIST_WIDTH - ((SPACING * 2) + 2)
-
 local GROUP_HEIGHT = 80
 local GROUP_WIDTH = 270
-
-local MENU_BUTTON_WIDTH = BUTTON_LIST_WIDTH - (SPACING * 2)
-local MENU_BUTTON_HEIGHT = 20
-
 local WIDGET_HEIGHT = 20
-
 local LABEL_SPACING = 3
-
 local SELECTED_HIGHLIGHT_ALPHA = 0.3
 local MOUSEOVER_HIGHLIGHT_ALPHA = 0.1
 local LAST_ACTIVE_DROPDOWN
-
-local MAX_WIDGETS_SHOWN = 14
 
 GUI2.Ignore = {
 	["ui-profile"] = true,
@@ -71,10 +53,6 @@ local SetVariable = function(id, value)
 	end
 	
 	Settings[id] = value]]
-end
-
-local HexToRGB = function(hex)
-    return tonumber("0x"..sub(hex, 1, 2)) / 255, tonumber("0x"..sub(hex, 3, 4)) / 255, tonumber("0x"..sub(hex, 5, 6)) / 255
 end
 
 local Round = function(num, dec)
@@ -350,7 +328,7 @@ local ButtonOnMouseUp = function(self)
 end
 
 local ButtonOnMouseDown = function(self)
-	local R, G, B = HexToRGB(Settings["ui-widget-bright-color"])
+	local R, G, B = vUI:HexToRGB(Settings["ui-widget-bright-color"])
 	
 	self.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
 end
@@ -913,7 +891,7 @@ function GUI2:CreateInputWindow()
 	end)
 	
 	Window.CloseButton:SetScript("OnMouseDown", function(self)
-		local R, G, B = HexToRGB(Settings["ui-header-texture-color"])
+		local R, G, B = vUI:HexToRGB(Settings["ui-header-texture-color"])
 		
 		self.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
 	end)
@@ -1556,7 +1534,7 @@ local DropdownButtonOnMouseUp = function(self)
 end
 
 local DropdownButtonOnMouseDown = function(self)
-	local R, G, B = HexToRGB(Settings["ui-widget-bright-color"])
+	local R, G, B = vUI:HexToRGB(Settings["ui-widget-bright-color"])
 	
 	self.Parent.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
 end
@@ -1600,7 +1578,7 @@ local MenuItemOnMouseUp = function(self)
 end
 
 local MenuItemOnMouseDown = function(self)
-	local R, G, B = HexToRGB(Settings["ui-widget-bright-color"])
+	local R, G, B = vUI:HexToRGB(Settings["ui-widget-bright-color"])
 	
 	self.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
 end
@@ -2545,7 +2523,7 @@ local SwatchEditBoxOnMouseDown = function(self)
 end
 
 local SwatchButtonOnMouseDown = function(self)
-	local R, G, B = HexToRGB(Settings["ui-button-texture-color"])
+	local R, G, B = vUI:HexToRGB(Settings["ui-button-texture-color"])
 	
 	self.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
 end
@@ -2622,7 +2600,7 @@ local CreateColorPicker = function()
 	end)
 	
 	ColorPicker.CloseButton:SetScript("OnMouseDown", function(self)
-		local R, G, B = HexToRGB(Settings["ui-header-texture-color"])
+		local R, G, B = vUI:HexToRGB(Settings["ui-header-texture-color"])
 		
 		self.Texture:SetVertexColor(R * 0.85, G * 0.85, B * 0.85)
 	end)

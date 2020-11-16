@@ -9,30 +9,17 @@ local GUI2 = vUI:NewPlugin("vUI_GUI2")
 local GUI_WIDTH = 726
 local GUI_HEIGHT = 340
 local SPACING = 3
-
 local HEADER_WIDTH = GUI_WIDTH - (SPACING * 2)
 local HEADER_HEIGHT = 20
 local HEADER_SPACING = 5
-
 local BUTTON_LIST_WIDTH = 126
-local BUTTON_LIST_HEIGHT = (GUI_HEIGHT - HEADER_HEIGHT - (SPACING * 2) - 2)
-
 local PARENT_WIDTH = GUI_WIDTH - BUTTON_LIST_WIDTH - ((SPACING * 2) + 2)
-
-local GROUP_HEIGHT = 80
 local GROUP_WIDTH = 270
-
 local MENU_BUTTON_WIDTH = BUTTON_LIST_WIDTH - (SPACING * 2)
-local MENU_BUTTON_HEIGHT = 20
-
 local WIDGET_HEIGHT = 20
-
 local LABEL_SPACING = 3
-
 local SELECTED_HIGHLIGHT_ALPHA = 0.3
 local MOUSEOVER_HIGHLIGHT_ALPHA = 0.1
-local LAST_ACTIVE_DROPDOWN
-
 local MAX_WIDGETS_SHOWN = 14
 
 -- Locals
@@ -50,7 +37,7 @@ GUI2.Categories = {}
 GUI2.CategoryNames = {}
 GUI2.Widgets = {}
 GUI2.OnLoadCalls = {}
-GUI2.SortScrollButtons = {}
+GUI2.ScrollButtons = {}
 GUI2.WindowHooks = {onshow = {}, onhide = {}}
 
 local Scroll = function(self)
@@ -261,7 +248,7 @@ end
 
 function GUI2:CreateCategory(name)
 	local Category = CreateFrame("Frame", nil, self)
-	Category:SetSize(MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)
+	Category:SetSize(MENU_BUTTON_WIDTH, WIDGET_HEIGHT)
 	Category:SetFrameLevel(self:GetFrameLevel() + 2)
 	Category.SortName = name
 	Category.Name = name
@@ -548,7 +535,7 @@ function GUI2:CreateWindow(category, name, parent)
 	local Category = self.CategoryNames[category]
 	
 	local Button = CreateFrame("Frame", nil, self, "BackdropTemplate")
-	Button:SetSize(MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT, "BackdropTemplate")
+	Button:SetSize(MENU_BUTTON_WIDTH, WIDGET_HEIGHT, "BackdropTemplate")
 	Button:SetFrameLevel(self:GetFrameLevel() + 2)
 	Button.Name = name
 	Button.Category = category
@@ -571,7 +558,7 @@ function GUI2:CreateWindow(category, name, parent)
 	Button.Highlight:SetAlpha(0)
 	
 	Button.Text = Button:CreateFontString(nil, "OVERLAY")
-	Button.Text:SetSize(MENU_BUTTON_WIDTH - 6, MENU_BUTTON_HEIGHT)
+	Button.Text:SetSize(MENU_BUTTON_WIDTH - 6, WIDGET_HEIGHT)
 	
 	Button.Fade = CreateAnimationGroup(Button.Selected)
 	
@@ -667,15 +654,15 @@ function GUI2:ScrollSelections()
 	local Count = 0
 	
 	-- Collect buttons
-	for i = 1, #self.SortScrollButtons do
-		tremove(self.SortScrollButtons, 1)
+	for i = 1, #self.ScrollButtons do
+		tremove(self.ScrollButtons, 1)
 	end
 	
 	for i = 1, #self.Categories do
 		Count = Count + 1
 		
 		if (Count >= self.Offset) and (Count <= self.Offset + MAX_WIDGETS_SHOWN - 1) then
-			tinsert(self.SortScrollButtons, self.Categories[i])
+			tinsert(self.ScrollButtons, self.Categories[i])
 		end
 		
 		self.Categories[i]:Hide()
@@ -684,7 +671,7 @@ function GUI2:ScrollSelections()
 			Count = Count + 1
 				
 			if (Count >= self.Offset) and (Count <= self.Offset + MAX_WIDGETS_SHOWN - 1) then
-				tinsert(self.SortScrollButtons, self.Categories[i].Buttons[j])
+				tinsert(self.ScrollButtons, self.Categories[i].Buttons[j])
 			end
 		
 			if self.Categories[i].Buttons[j].ChildrenShown then
@@ -692,7 +679,7 @@ function GUI2:ScrollSelections()
 					Count = Count + 1
 				
 					if (Count >= self.Offset) and (Count <= self.Offset + MAX_WIDGETS_SHOWN - 1) then
-						tinsert(self.SortScrollButtons, self.Categories[i].Buttons[j].Children[o])
+						tinsert(self.ScrollButtons, self.Categories[i].Buttons[j].Children[o])
 						self.Categories[i].Buttons[j].Children[o]:Show()
 					else
 						self.Categories[i].Buttons[j].Children[o]:Hide()
@@ -708,17 +695,17 @@ function GUI2:ScrollSelections()
 	
 	self.ScrollBar:SetMinMaxValues(1, (Count - MAX_WIDGETS_SHOWN) + 1)
 	
-	for i = 1, #self.SortScrollButtons do
-		if self.SortScrollButtons[i] then
-			self.SortScrollButtons[i]:ClearAllPoints()
+	for i = 1, #self.ScrollButtons do
+		if self.ScrollButtons[i] then
+			self.ScrollButtons[i]:ClearAllPoints()
 			
 			if (i == 1) then
-				self.SortScrollButtons[i]:SetPoint("TOPLEFT", self.SelectionParent, SPACING, -SPACING)
+				self.ScrollButtons[i]:SetPoint("TOPLEFT", self.SelectionParent, SPACING, -SPACING)
 			else
-				self.SortScrollButtons[i]:SetPoint("TOP", self.SortScrollButtons[i-1], "BOTTOM", 0, -2)
+				self.ScrollButtons[i]:SetPoint("TOP", self.ScrollButtons[i-1], "BOTTOM", 0, -2)
 			end
 			
-			self.SortScrollButtons[i]:Show()
+			self.ScrollButtons[i]:Show()
 		end
 	end
 end
